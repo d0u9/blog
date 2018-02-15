@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+  <link rel="stylesheet" media="all" href="/lib/Han/dist/han.min.css?v=3.3">
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/icons/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/icons/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/icons/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/icons/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Linux,Linux Kernel," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Linux驱动和内核的开发相比较用户空间的代码，最显著的就是对于各类并发的控制。在用户空间中。 与普通用户空间下的进程间同步不同的是，由于整个内核是一个整体，一个业余的驱动也可能导致整个内核的锁死。除此之外，内核中充满了大量的异步特性，例如多处理器，软硬件中断，内核抢占都可能导致资源产生竞争。因此掌握好内核的同步机制，是学习驱动和内核开发的先决条件。">
+<meta name="keywords" content="Linux,Linux Kernel">
+<meta property="og:type" content="article">
+<meta property="og:title" content="内核同步方法简介">
+<meta property="og:url" content="http://d0u9.win/posts/3699999470.html">
+<meta property="og:site_name" content="d0u9">
+<meta property="og:description" content="Linux驱动和内核的开发相比较用户空间的代码，最显著的就是对于各类并发的控制。在用户空间中。 与普通用户空间下的进程间同步不同的是，由于整个内核是一个整体，一个业余的驱动也可能导致整个内核的锁死。除此之外，内核中充满了大量的异步特性，例如多处理器，软硬件中断，内核抢占都可能导致资源产生竞争。因此掌握好内核的同步机制，是学习驱动和内核开发的先决条件。">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2017-11-07T13:58:36.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="内核同步方法简介">
+<meta name="twitter:description" content="Linux驱动和内核的开发相比较用户空间的代码，最显著的就是对于各类并发的控制。在用户空间中。 与普通用户空间下的进程间同步不同的是，由于整个内核是一个整体，一个业余的驱动也可能导致整个内核的锁死。除此之外，内核中充满了大量的异步特性，例如多处理器，软硬件中断，内核抢占都可能导致资源产生竞争。因此掌握好内核的同步机制，是学习驱动和内核开发的先决条件。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://d0u9.win/posts/3699999470.html"/>
+
+
+
+
+
+  <title>内核同步方法简介 | d0u9</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    
+      <img class="site-author-image" itemprop="image"
+        src="/images/avatar.png"
+        alt="Douglas Su" />
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">d0u9</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">For thine is the kingdom, the power, and the glory ...</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://d0u9.win/posts/3699999470.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Douglas Su">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="d0u9">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">内核同步方法简介</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-08-01T05:34:00+08:00">
+                2015-08-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/" itemprop="url" rel="index">
+                    <span itemprop="name">Science & Technology</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/Linux/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body han-init-context" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Linux驱动和内核的开发相比较用户空间的代码，最显著的就是对于各类并发的控制。在用户空间中。</p>
+<p>与普通用户空间下的进程间同步不同的是，由于整个内核是一个整体，一个业余的驱动也可能导致整个内核的锁死。除此之外，内核中充满了大量的异步特性，例如多处理器，软硬件中断，内核抢占都可能导致资源产生竞争。因此掌握好内核的同步机制，是学习驱动和内核开发的先决条件。</p>
+<a id="more"></a>
+<hr>
+<h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ul>
+<li><a href="#Atomic-Operations">Atomic Operations</a><ul>
+<li><a href="#Atomic-Integer-Operations">Atomic Integer Operations</a></li>
+<li><a href="#64bit-Atomic-Operations">64bit Atomic Operations</a></li>
+<li><a href="#Atomic-Bitwise-Operations">Atomic Bitwise Operations</a></li>
+</ul>
+</li>
+<li><a href="#Spin-Locks">Spin Locks</a><ul>
+<li><a href="#Spin-Lock-Methods">Spin Lock Methods</a></li>
+<li><a href="#与Spin-Lock有关的函数">与Spin Lock有关的函数</a></li>
+<li><a href="#Spin-Lock-amp-Bottom-Halves">Spin Lock &amp; Bottom Halves</a></li>
+<li><a href="#Reader-Writer-Spin-Locks">Reader-Writer Spin Locks</a></li>
+<li><a href="#Spin-Lock总结">Spin Lock总结</a></li>
+</ul>
+</li>
+<li><a href="#Semaphores-信号量">Semaphores(信号量)</a><ul>
+<li><a href="#Counting-and-Binary-Semaphores">Counting and Binary Semaphores</a></li>
+<li><a href="#Creating-and-Initializing-Semaphore">Creating and Initializing Semaphore</a></li>
+<li><a href="#信号量的使用">信号量的使用</a></li>
+<li><a href="#Reader-Writer-Semaphores">Reader-Writer Semaphores</a></li>
+</ul>
+</li>
+<li><a href="#Mutex">Mutex</a></li>
+<li><a href="#Completion-Variables">Completion Variables</a></li>
+<li><a href="#BKL-The-Big-Kernel-Lock">BKL: The Big Kernel Lock</a></li>
+<li><a href="#Sequential-Locks">Sequential Locks</a></li>
+</ul>
+<hr>
+<h1 id="Atomic-Operations"><a href="#Atomic-Operations" class="headerlink" title="Atomic Operations"></a>Atomic Operations</h1><h2 id="Atomic-Integer-Operations"><a href="#Atomic-Integer-Operations" class="headerlink" title="Atomic Integer Operations"></a>Atomic Integer Operations</h2><p>Atomic整数操作主要使用的是一个叫做<code>atomic_t</code>的特殊类型。<code>atomic_t</code>类型定义在<code>&lt;linux/types.h&gt;</code>中:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></div><div class="line">    <span class="keyword">volatile</span> <span class="keyword">int</span> counter;</div><div class="line">&#125; <span class="keyword">atomic_t</span>;</div></pre></td></tr></table></figure>
+<p>虽然<code>atomic_t</code>类型的实质是<code>int</code>，既在所有的CPU架构中都位32位，但内核开发者却假定<code>atomic_t</code>类型最大不超过24位。实际上，造成这种现象的原因是由于SPARC架构的CPU无法提供合适机器指令级别的并发访问保护。因此，在<code>atomic_t</code>类型的低8位中嵌入了一个锁,用于保护对该类型变量的并发保护。虽然在其他的架构上可以使用全部的32位，但是为了移植的要求，我们依然保持了仅仅只用其中的24位的习惯。不过最近聪明的内核黑客已经允许在SPARC架构的CPU上使用全部的32位<code>atomic_t</code>类型，因此<strong>上述限制已经不存在了</strong>。</p>
+<p>对于<code>atomic_t</code>变量的操作都在<code>&lt;asm/atomic.h&gt;</code>中声明了。部分的CPU架构提供了额外的方法用以操作<code>atomic_t</code>变量，但是所有的架构都会提供一个最小的函数集用以维护<code>atomic_t</code>类型的变量。</p>
+<p><code>atomic_t</code>变量的一个主要作用是作为计数器，从而避免了使用复杂锁机制。</p>
+<p>该类型的一个其他应用场景是原子的进行一个操作并测试结果，例如自减后查看是否为<code>0</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">atomic_dec_and_test</span><span class="params">(<span class="keyword">atomic_t</span> *v)</span></span></div></pre></td></tr></table></figure>
+<p>上面的函数会对给定的<code>atomic_t</code>类型进行减1操作，同时判断结果是否为<code>0</code>。如果为<code>0</code>则返回<code>true</code>，否则返回<code>false</code>。</p>
+<p>针对<code>atomic_t</code>的所有操作的完整列表可参考<code>&lt;asm/atomic.h&gt;</code>。</p>
+<p>在我们的代码中，尽量选择使用<code>atomic_t</code>类型，而非其他的复杂的锁机制。在大多数的架构上，对于一两个<code>atomic_t</code>类型变量的操作不会引起过多的开销和cache-line thrashing。然而，针对性能敏感的代码，测试不同的方法是最明智的。</p>
+<h2 id="64bit-Atomic-Operations"><a href="#64bit-Atomic-Operations" class="headerlink" title="64bit Atomic Operations"></a>64bit Atomic Operations</h2><p>随着64位架构和系统的普及，内核开发者也提出了针对64位版本的atomic_t变量的变种版本<code>atomic64_t</code>。几乎所有的针对32位<code>atomic_t</code>类型的操作函数都有其对应的64位版本，只是他们用<code>atomic64</code>前缀替换了<code>atomic</code>前缀。</p>
+<h2 id="Atomic-Bitwise-Operations"><a href="#Atomic-Bitwise-Operations" class="headerlink" title="Atomic Bitwise Operations"></a>Atomic Bitwise Operations</h2><p>除了对整个<code>atomic_t</code>类型的操作之外，内核还提供了一套bit级的操作函数。不出意外的是，这些函数都是与CPU架构相关的。它们在<code>&lt;asm/bitops.h&gt;</code>中声明。</p>
+<p>这些函数的参数是一个指向被操作数的指针和一个整数用以表示需要操作的位。第0位bit是最低位。在32位机上，第31位bit是最高位比特，而第32位bit是下一个word的最低位。</p>
+<p>需要注意的是：对于位的操作不必非要使用<code>atomic_t</code>类型的数据。指向任何类型的指针都可以作为这些函数的操作数，例如：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">unsigned</span> <span class="keyword">long</span> word = <span class="number">0</span>;</div><div class="line">set_bit(<span class="number">0</span>, &amp;word);</div></pre></td></tr></table></figure>
+<p>内核除了提供原子性的位操作外，还提供了非原子性的位操作。这些非原子性的操作的唯一区别是函数名加了<code>__</code>两个下划线作为前缀。如果你的代码已经受到了其他的锁的保护，使用非原子性的位操作将会提升代码的执行速度。否则，请使用原子性的位操作。</p>
+<h1 id="Spin-Locks"><a href="#Spin-Locks" class="headerlink" title="Spin Locks"></a>Spin Locks</h1><p>在内核中，最常见的就是<strong>spin lock</strong>了。</p>
+<p><strong>spin lock</strong>仅仅能被一个运行中的线程所获得。如果一个线程尝试获取一个已经被占用的自旋锁，一般被称为<strong>contended</strong>，那么该线程会陷入无限循环中即<strong>spin</strong>，直到这个锁被释放。如果这个锁没有<strong>contended</strong>，那么该线程则可以立即获得该锁。</p>
+<p>spin保证了在任何时候，不超过一个的可执行线程进入临界区。</p>
+<p>由于自旋锁会以消耗CPU时间为代价来等待锁的释放，因此长时间的占用自旋锁是不明智的。一种替代的方法是，当某个线程需要获取的自旋锁处于<strong>contended</strong>状态时，则将该线程休眠，等待该锁被释放后，再唤醒该线程。然而这种方法会导致一些额外的开销，即两次上下文切换所造成的开销。这种开销已经远远超过了使用自旋锁带来的好处。</p>
+<p><strong>因此，最明智的做法是将占用自旋锁的持续时间控制在小于两次进程的切换时间</strong>。不过由于估计上下文切换时间是困难的，因此尽量保证获取自旋锁的时间尽量短才是正确的。同时由于现在的内核均支持抢占（preemptive），占用自旋锁的时间与系统调度延迟的时间相等。</p>
+<h2 id="Spin-Lock-Methods"><a href="#Spin-Lock-Methods" class="headerlink" title="Spin Lock Methods"></a>Spin Lock Methods</h2><p>自旋锁的实现与CPU架构有关，同时实现它们的代码均为汇编。</p>
+<p>与CPU架构有关的代码定义在<code>&lt;asm/spinlock.h&gt;</code>中。实际可用的接口函数定义在<code>&lt;linux/spinlock.h&gt;</code>中。</p>
+<p>自旋锁的基本用法如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">DEFINE_SPINLOCK(mr_lock);</div><div class="line">spin_lock(&amp;mr_lock);</div><div class="line"><span class="comment">/* critical region ... */</span></div><div class="line">spin_unlock(&amp;mr_lock);</div></pre></td></tr></table></figure>
+<blockquote>
+<p>在单CPU的机器上，锁并既不会被被编译也不会存在，这里的锁仅仅是禁止了内核抢占。如果内核在编译时禁用了抢占，那么什么都不会存在了。</p>
+</blockquote>
+<p>需要特别注意的是，内核的自旋锁不同于用户空间的线程库中的自旋锁，内核空间的自旋锁是不能递归调用的。在内核中递归的获取自旋锁会导致内核死锁。</p>
+<p><strong>自旋锁不会引起进程休眠，因此可以合法的在中断处理函数中使用自旋锁。由于信号量会导致休眠，因此不能在中断处理函数中使用自旋锁。</strong></p>
+<p><strong>如果要在中断处理函数中使用自旋锁，必须先关闭同一CPU的中断，否则，中断的嵌套会造成自旋锁嵌套，从而被死锁。</strong></p>
+<p>内核提供了能够同时关闭中断和获取自旋锁的接口：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">DEFINE_SPINLOCK(mr_lock);</div><div class="line"></div><div class="line"><span class="keyword">unsigned</span> <span class="keyword">long</span> flags;</div><div class="line">spin_lock_irqsave(&amp;mr_lock, flags);</div><div class="line"><span class="comment">/* critical region ... */</span></div><div class="line">spin_unlock_irqrestore(&amp;mr_lock, flags);</div></pre></td></tr></table></figure>
+<p>如果不想保存寄存器中的内容，可以使用如下函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">DEFINE_SPINLOCK(mr_lock);</div><div class="line"></div><div class="line">spin_lock_irq(&amp;mr_lock);</div><div class="line"><span class="comment">/* critical section ... */</span></div><div class="line">spin_unlock_irq(&amp;mr_lock);</div></pre></td></tr></table></figure>
+<p>与调试自旋锁有关的内核配置项：</p>
+<ol>
+<li>CONFIGDEBUGSPINLOCK</li>
+<li>CONFIGDEBUGLOCK_ALLOC</li>
+</ol>
+<h2 id="与Spin-Lock有关的函数"><a href="#与Spin-Lock有关的函数" class="headerlink" title="与Spin Lock有关的函数"></a>与Spin Lock有关的函数</h2><table>
+<thead>
+<tr>
+<th style="text-align:center">Method</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><code>spin_lock()</code></td>
+<td style="text-align:left">Acquires given lock</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>spin_lock_irq()</code></td>
+<td style="text-align:left">Disables local interrupts and acquires given lock</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>spin_lock_irqsave()</code></td>
+<td style="text-align:left">Saves current state of local interrupts, disables local interrupts, and acquires given lock</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>spin_unlock()</code></td>
+<td style="text-align:left">Releases given lock</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>spin_unlock_irq()</code></td>
+<td style="text-align:left">Releases given lock and enables local interrupts</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>spin_unlock_irqrestore()</code></td>
+<td style="text-align:left">Releases given lock and restores local interrupts to given previous state</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>spin_lock_init()</code></td>
+<td style="text-align:left">Dynamically initializes given <code>spinlock_t</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>spin_trylock()</code></td>
+<td style="text-align:left">Tries to acquire given lock; if unavailable, returns nonzero</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>spinislocked()</code></td>
+<td style="text-align:left">Returns nonzero if the given lock is currently acquired, otherwise it returns zero</td>
+</tr>
+</tbody>
+</table>
+<h2 id="Spin-Lock-amp-Bottom-Halves"><a href="#Spin-Lock-amp-Bottom-Halves" class="headerlink" title="Spin Lock &amp; Bottom Halves"></a>Spin Lock &amp; Bottom Halves</h2><p>函数<code>spin_lock_bh()</code>获取自旋锁并且禁止所有Bottom Halves。<code>spin_unlock_bh()</code>做相反的工作。</p>
+<ol>
+<li>由于Bottom Half会抢占进程上下文的执行。因此，如果数据在Bottom Half的进程上下文之间共享的话，则必须使用锁并且禁止Bottom Halves。</li>
+<li>由于中断服务函数会抢占Bottom Half，因此如果数据在中断处理函数和bottom half之间共享的话，必须要获得锁并且禁止中断。</li>
+<li>由于两个类型相同的tasklet永远不会同时运行。因此在相同类型的tasklet间共享的数据不需要保护。</li>
+<li>如果在两个不同类型的tasklet间共享数据的话，必须在访问bottom half中数据之前获得锁。由于在同一CPU上的tasklet不会互相抢占，因此并不需要禁止bottom halves。</li>
+<li>不管是不是相同类型的softirq，只要他们之间有数据的共享就必须被锁保护。由于即使是两个相同类型的softirq也可能在不同的CPU上同时运行。同一个CPU上的softirq并不会互相抢占，因此不需要禁止bottom halves。</li>
+</ol>
+<h2 id="Reader-Writer-Spin-Locks"><a href="#Reader-Writer-Spin-Locks" class="headerlink" title="Reader-Writer Spin Locks"></a>Reader-Writer Spin Locks</h2><p><strong>Reader-Writer Spin Locks</strong>为锁提供了读了的reader和writer两个变种版本。一个或多个reader能够同时获得<strong>reader lock</strong>。然而<strong>writer lock</strong>只能同时被一个writer获取。</p>
+<p><strong>Reader-Writer Spin Locks</strong>有时被称作共享/互斥锁（shared/exclusive locks）或并发/互斥锁（concurrent/exclusive locks）。</p>
+<p><strong>Reader-Writer Spin Locks</strong>的使用方法如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">DEFINE_RWLOCK(mr_rwlock);</div><div class="line"></div><div class="line"><span class="comment">/* For readers */</span></div><div class="line">read_lock(&amp;mr_rwlock);</div><div class="line"><span class="comment">/* critical section (read only) ... */</span></div><div class="line">read_unlock(&amp;mr_rwlock);</div><div class="line"></div><div class="line"><span class="comment">/* For writers */</span></div><div class="line">write_lock(&amp;mr_rwlock);</div><div class="line"><span class="comment">/* critical section (read and write) ... */</span> write_unlock(&amp;mr_lock);</div></pre></td></tr></table></figure>
+<p>与<strong>Reader-Writer Spin Locks</strong>有关的函数：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Method</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><code>read_lock()</code></td>
+<td style="text-align:left">Acquires given lock for reading</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>read_lock_irq()</code></td>
+<td style="text-align:left">Disables local interrupts and acquires given lock for reading</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>read_lock_irqsave()</code></td>
+<td style="text-align:left">Saves the current state of local interrupts, disables local interrupts, and acquires the given lock for reading</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>read_unlock()</code></td>
+<td style="text-align:left">Releases given lock for reading</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>read_unlock_irq()</code></td>
+<td style="text-align:left">Releases given lock and enables local interrupts</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>readunlock irqrestore()</code></td>
+<td style="text-align:left">Releases given lock and restores local interrupts to the given previous state</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>write_lock()</code></td>
+<td style="text-align:left">Acquires given lock for writing</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>write_lock_irq()</code></td>
+<td style="text-align:left">Disables local interrupts and acquires the given lock for writing</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>write_lock_irqsave()</code></td>
+<td style="text-align:left">Saves current state of local interrupts, disables local interrupts, and acquires the given lock for writing</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>write_unlock()</code></td>
+<td style="text-align:left">Releases given lock</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>write_unlock_irq()</code></td>
+<td style="text-align:left">Releases given lock and enables local interrupts</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>write_unlock_irqrestore()</code></td>
+<td style="text-align:left">Releases given lock and restores local interrupts to given previous state</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>write_trylock()</code></td>
+<td style="text-align:left">Tries to acquire given lock for writing; if unavailable, returns nonzero</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>rwlock_init()</code></td>
+<td style="text-align:left">Initializes given <code>rwlock_t</code></td>
+</tr>
+</tbody>
+</table>
+<p>对于<strong>reader-writer lock</strong>还需要注意的是，这种锁更偏向于reader，也就是说只要有一个reader获取改锁，那么就不会有writer获取。</p>
+<h2 id="Spin-Lock总结"><a href="#Spin-Lock总结" class="headerlink" title="Spin Lock总结"></a>Spin Lock总结</h2><p>自旋锁提供了简单并且快速的的锁机制。自旋锁被优化为应对较短的占用时间同时，获取到自旋锁的代码不能休眠。如果在获取到锁后需要较长时间的休眠，那么信号量是一个好的解决方案。</p>
+<h1 id="Semaphores-信号量"><a href="#Semaphores-信号量" class="headerlink" title="Semaphores (信号量)"></a>Semaphores (信号量)</h1><p>信号量在Linux内核中是能够被<strong>休眠</strong>的锁。当某个任务尝试获得的信号量不能立刻满足时，系统会将该任务加入到一个等待队列中并且将改任务休眠。这样处理器就能够被释放从而执行其他的代码。</p>
+<p>信号量具有如下的特点：</p>
+<ol>
+<li>由于在等待处于contended状态的信号量时，任务可以被休眠，因此信号量非常适合锁获取时间较长的场合。</li>
+<li>相反的，由于信号量没有被优化用以应对较短的锁时间，因此，如果占用锁的时间过短的话反而会增加整个系统的开销。</li>
+<li>由于代码的执行路线会因为信号量而被休眠，因此，获取信号量的代码只能存在于进程上下文中，而不能存在于中断上下文中。毕竟中断上下文是不能够被调度的。</li>
+<li>获得信号量的任务能够被休眠，因为信号量并不像自旋锁会一直占用CPU。当一个任务因为等待信号量而休眠时，其他的任务会被调度至CPU，从而避免了死锁的发生。</li>
+<li>在获取获得自旋锁后再获取信号量，这是因为信号量会使得任务被休眠，而这对自旋锁来说是不允许对。</li>
+</ol>
+<blockquote>
+<p>如果你的代码经常需要休眠，信号量是唯一的解决方案。 通常在非必需的情况下，使用信号量会更容易，因为他们允许休眠。</p>
+</blockquote>
+<p>如果在某个场景下，自旋锁和信号量都能胜任，那么具体的选择应该由占用锁的时间长短锁决定。</p>
+<p>除此之外，和自旋锁不同的是，信号量<strong>不会禁止内核的抢占</strong>，因此占用信号量的任务能够被其他的任务所抢占。这也就意味着，信号量不会造成调度的延迟。</p>
+<h2 id="Counting-and-Binary-Semaphores"><a href="#Counting-and-Binary-Semaphores" class="headerlink" title="Counting and Binary Semaphores"></a>Counting and Binary Semaphores</h2><p>信号量的最后一个特点是允许同时被任意数量的任务占用。然而，自旋锁仅能允许被一个任务占用。信号量所能允许的最大占用数量是在声明的时候就决定的。这个值被称作<strong>usage count</strong>或者简称<strong>count</strong>。</p>
+<p>如果将信号量的count设置为1，那么它就能被称作<strong>binary semaphore</strong>或<strong>mutex</strong>。同样的，<strong>count</strong>也能被初始化为任何大于1的非零数。在这种情况下的信号量被称作<strong>counting semaphore</strong>。</p>
+<p><strong>counting semaphore</strong>在内核中使用的很少，一般都使用<strong>mutex</strong>。</p>
+<h2 id="Creating-and-Initializing-Semaphore"><a href="#Creating-and-Initializing-Semaphore" class="headerlink" title="Creating and Initializing Semaphore"></a>Creating and Initializing Semaphore</h2><p>和自旋锁一样，信号量的具体实现是与所使用的CPU架构有关的。所有有关信号量的定义均包含在<strong><asm semaphore.h=""></asm></strong>中。信号量使用<strong>struct semaphore</strong>数据结构来表示。</p>
+<p>静态声明的信号量通过以下方法创建，其中<strong>name</strong>是该变量的名字，而<strong>count</strong>是该信号量的<strong>usage count</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">semaphore</span> <span class="title">name</span>;</span></div><div class="line">sema_init(&amp;name, count);</div></pre></td></tr></table></figure>
+<p>如果想快速的创建一个<strong>mutex</strong>，使用如下的方法：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> <span class="title">DECLARE_MUTEX</span><span class="params">(name)</span></span>;</div></pre></td></tr></table></figure>
+<p>动态声明和创建信号量的方法如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">sema_init(sem, count);</div><div class="line">init_MUTEX(sem);</div></pre></td></tr></table></figure>
+<h2 id="信号量的使用"><a href="#信号量的使用" class="headerlink" title="信号量的使用"></a>信号量的使用</h2><p>函数<code>down_interruptible()</code>会尝试获取指定的信号量。如果信号量不能立即获得，该函数会讲调用该函数的进程休眠，即转为<code>TASK_INTERRUPTIBLE</code>状态。如果任务在等待信号量可用的过程中收到了信号，那么<code>down_interruptible()</code>会返回<code>-EINTR</code>。</p>
+<p>相似的<code>down()</code>函数会讲调用它的任务转为<code>TASK_UNINTERRUPTIBLE</code>状态。</p>
+<p>如果要释放一个信号量需要使用<code>up()</code>函数。</p>
+<p>下面是一个简单的例子：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* define and declare a semaphore, named mr_sem, with a count of one */</span></div><div class="line"><span class="function"><span class="keyword">static</span> <span class="title">DECLARE_MUTEX</span><span class="params">(mr_sem)</span></span>;</div><div class="line"></div><div class="line"><span class="comment">/* attempt to acquire the semaphore ... */</span> </div><div class="line"><span class="keyword">if</span> (down_interruptible(&amp;mr_sem)) &#123;</div><div class="line">    <span class="comment">/* signal received, semaphore not acquired ... */</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">/* critical region ... */</span></div><div class="line"></div><div class="line"><span class="comment">/* release the given semaphore */</span> </div><div class="line">up(&amp;mr_sem);</div></pre></td></tr></table></figure>
+<p>与信号量有关的全部操作如下表：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Method</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><code>sema_init(struct semaphore, int)</code></td>
+<td style="text-align:left">Initializes the dynamically created semaphore to the given count</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>init_MUTEX(struct semaphore)</code></td>
+<td style="text-align:left">Initializes the dynamically created semaphore with a count of one</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>init_MUTEX_LOCKED(struct semaphore)</code></td>
+<td style="text-align:left">Initializes the dynamically created semaphore with a count of zero (so it is initially locked)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>down_interruptible (struct semaphore)</code></td>
+<td style="text-align:left">Tries to acquire the given semaphore and enter interruptible sleep if it is contended</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>down(struct semaphore)</code></td>
+<td style="text-align:left">Tries to acquire the given semaphore and enter uninterruptible sleep if it is contended</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>down_trylock(struct semaphore)</code></td>
+<td style="text-align:left">Tries to acquire the given semaphore and immediately return nonzero if it is contended</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>up(struct semaphore *)</code></td>
+<td style="text-align:left">Releases the given semaphore and wakes a waiting task, if any</td>
+</tr>
+</tbody>
+</table>
+<h2 id="Reader-Writer-Semaphores"><a href="#Reader-Writer-Semaphores" class="headerlink" title="Reader-Writer Semaphores"></a>Reader-Writer Semaphores</h2><p>信号量和自旋锁一样，拥有一套<strong>Reader-Writer</strong>类型的信号量。</p>
+<p>Reader-Writer信号量用<code>struct rw_semaphore</code>类型表示，该类型在<code>&lt;linux/rwsem.h&gt;</code>文件中定义。静态和动态的初始化Reader-Writers Semaphore的方法如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> <span class="title">DECLARE_RWSEM</span><span class="params">(name)</span></span>;</div><div class="line">init_rwsem(struct rw_semaphore *sem);</div></pre></td></tr></table></figure>
+<p><strong>需要注意的是，所有的Reader-Writer信号量都是<code>mutex</code>，即他们的usage counting总是1。</strong></p>
+<p>所有的Reader-Writer锁都是<code>uninterruptible</code>的，因此它们仅有一个<code>down()</code>函数。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> <span class="title">DECLARE_RWSEM</span><span class="params">(mr_rwsem)</span></span>;</div><div class="line"></div><div class="line"><span class="comment">/* attempt to acquire the semaphore for reading ... */</span></div><div class="line">down_read(&amp;mr_rwsem);</div><div class="line"></div><div class="line"><span class="comment">/* critical region (read only) ... */</span></div><div class="line"></div><div class="line"><span class="comment">/* release the semaphore */</span></div><div class="line">up_read(&amp;mr_rwsem);</div><div class="line"></div><div class="line"><span class="comment">/* ... */</span></div><div class="line"></div><div class="line"><span class="comment">/* attempt to acquire the semaphore for writing ... */</span></div><div class="line">down_write(&amp;mr_rwsem);</div><div class="line"></div><div class="line"><span class="comment">/* critical region (read and write) ... */</span></div><div class="line"></div><div class="line"><span class="comment">/* release the semaphore */</span></div><div class="line">up_write(&amp;mr_sem);</div></pre></td></tr></table></figure>
+<p>和自旋锁相比，信号量的的Reader-Writer版本多了一个downgrade_write()函数。这个函数能够自动的将所获得的write lock转变为read lock。</p>
+<h1 id="Mutex"><a href="#Mutex" class="headerlink" title="Mutex"></a>Mutex</h1><p>由于用户经常将信号量用作<strong>mutex</strong>，即可以睡眠的自旋锁。由于信号量本身更加通用，同时也没有多少使用限制。这也使得信号量适合那些不明确的，复杂的互斥访问控制，比如内核空间和用户空间的负复杂交互行为。但是这也意味着信号量不能很容易的被使用且缺少某种自动调试方法。为了寻找一种简单的能够休眠的锁，内核开发者引入了<strong>mutex</strong>互斥体。</p>
+<p>互斥体使用<code>struct mutex</code>结构来表示。它感觉上和信号量相似，但是互斥体却有一个更加容易使用的接口，更加的高效还有使用上的额外限制。</p>
+<p>静态和动态定义互斥体的方法如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* statically define a mutex */</span></div><div class="line">DEFINE_MUTEX(name);</div><div class="line"></div><div class="line"><span class="comment">/* dynamically define a mutex */</span> </div><div class="line">mutex_init(&amp;mutex);</div></pre></td></tr></table></figure>
+<p>对互斥体的加锁和解锁非常的简单：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">mutex_lock(&amp;mutex);</div><div class="line"><span class="comment">/* critical region ... */</span></div><div class="line">mutex_unlock(&amp;mutex);</div></pre></td></tr></table></figure>
+<p>下表是关于互斥体的相关方法：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Method</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><code>mutex_lock(struct mutex)</code></td>
+<td style="text-align:left">Locks the given mutex; sleeps if the lock is unavailable</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>mutex_unlock(struct mutex)</code></td>
+<td style="text-align:left">Unlocks the given mutex</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>mutex_trylock(struct mutex)</code></td>
+<td style="text-align:left">Tries to acquire the given mutex; returns one if suc- cessful and the lock is acquired and zero otherwise</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>mutex_is_locked (struct mutex)</code></td>
+<td style="text-align:left">Returns one if the lock is locked and zero otherwise</td>
+</tr>
+</tbody>
+</table>
+<p>任何事情都是有两面性的，在互斥体带来简单与方便的同时，它的使用也有很多额外的限制。互斥体相比信号量的使用更加的严格和狭窄：</p>
+<ul>
+<li>只能由一个任务获取互斥体。</li>
+<li>不管是谁获取了互斥体，它必须在使用完后解锁互斥体，即不能在一个上下文中获取互斥体，而在另一个上下文中解锁互斥体。这意味着互斥体不能用在类似内核－用户空间的同步上。</li>
+<li>互斥体部允许的加锁和解锁是不允许递归的。</li>
+<li>进程在获得互斥体后不能退出。</li>
+<li><strong>互斥体不能在中断处理函数和Bottom Halves中使用，哪怕是mutex_trylock()函数也不行。</strong></li>
+<li>互斥体只能通过官方的API来管理。</li>
+</ul>
+<p>配置内核开启CONFIG_DEBUG_MUTEXES编译选项，会有多种检测来确保这些约束得以遵守。</p>
+<h1 id="Completion-Variables"><a href="#Completion-Variables" class="headerlink" title="Completion Variables"></a>Completion Variables</h1><p>在内核中，当一个任务需要通知其他的任务某个事件出现时，使用Completion Variables是最简单的同步方式。一个任务等待completion variable，另一个任务进行其他某些工作。当另一个任务完成工作时，使用completion variable来唤醒其他的正在等待的任务。</p>
+<p>或许，你会觉得这听起来和信号量的作用很像。事实上completion variable仅仅是为代替信号量提供了一个简单的解决方法。例如当子进程退出时，可以使用completion variable来唤醒父进程。</p>
+<p>completion varibales使用<code>struct completion</code>类型来表示，该类型定义在<code>&lt;linux/completion.h&gt;</code>中。</p>
+<p>静态和动态创建completion variables的方法如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* statically define a completion variable */</span></div><div class="line">DECLARE_COMPLETION(mr_comp);</div><div class="line"></div><div class="line"><span class="comment">/* dynamically define a completion variable */</span></div><div class="line">init_completion(&amp;mr_comp);</div></pre></td></tr></table></figure>
+<p>给定一个completion variable，需要等待的任务需要调用<code>wait_for_completion()</code>。当等待的时间发生了之后，调用<code>complete()</code>函数唤醒所有的正在等待的任务。下表列出了有关completion varibale的相关方法：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Method</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><code>init_completion(struct completion )</code></td>
+<td style="text-align:left">Initializes the given dynamically created completion variable</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>wait_for_completion(struct completion )</code></td>
+<td style="text-align:left">Waits for the given completion variable to be signaled</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>complete(struct completion *)</code></td>
+<td style="text-align:left">Signals any waiting tasks to wake up</td>
+</tr>
+</tbody>
+</table>
+<p>在<code>kernel/sched.c</code>和<code>kernel/fork.c</code>中有大量的关于<strong>completion variable</strong>的例子。一个常见的场景是，内核代码等待某个数据结构的初始化时调用<code>wait_for_completion()</code>，当初始化完成后，这些等待的任务会通过<code>completion()</code>来唤醒。</p>
+<hr>
+<h1 id="BKL-The-Big-Kernel-Lock"><a href="#BKL-The-Big-Kernel-Lock" class="headerlink" title="BKL: The Big Kernel Lock"></a>BKL: The Big Kernel Lock</h1><p>Big Kernel Lock最早提出是为了解决SMP兼容问题而加入的。它是一个全局的自旋锁。由于在最新的内核和驱动中已经不鼓励使用BKL，因此这里我们就不做深入的介绍了。</p>
+<p>有兴趣的读者可以参考<a href="http://kernelnewbies.org/BigKernelLock" target="_blank" rel="external">Here</a>和<a href="http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=4ba8216cd90560bc402f52076f64d8546e8aefcb" target="_blank" rel="external">Here</a>。</p>
+<h1 id="Sequential-Locks"><a href="#Sequential-Locks" class="headerlink" title="Sequential Locks"></a>Sequential Locks</h1><p><strong>Sequential Lock</strong>被简写为<strong>seq lock</strong>，它是在内核2.6中被引入的新类型。<strong>seq lock</strong>提供了一个简单的机制用以读写共享的数据。它的工作机制基于一个顺序计数器。在任何时候，有疑义的数据被写入的时候，就会获得一把锁，并且序列值会增加。在读取数据之前和之后，读取序列值。如果序列值相同的话，那么在读数据的时候，并没有写操作发生。更进一步将，如果序列值是偶数的话，说明当前没有写操作正在进行（由于初始值为0，写操作获得和释放锁时均会让序列值加1）。</p>
+<p>定义一个<strong>seq locks</strong>使用如下的方法：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">seqlock_t</span> mr_seq_lock = DEFINE_SEQLOCK(mr_seq_lock);</div></pre></td></tr></table></figure>
+<p>之后，使用<strong>seq lock</strong>保护数据写入的方法如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">write_seqlock(&amp;mr_seq_lock);</div><div class="line"><span class="comment">/* write lock is obtained... */</span></div><div class="line">write_sequnlock(&amp;mr_seq_lock);</div></pre></td></tr></table></figure>
+<p>对于使用<strong>seq lock</strong>保护的写入，代码可能会看起来有点奇怪：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">do</span> &#123;</div><div class="line">    seq = read_seqbegin(&amp;mr_seq_lock);</div><div class="line">    <span class="comment">/* read data here ... */</span></div><div class="line">&#125; <span class="keyword">while</span> (read_seqretry(&amp;mr_seq_lock, seq));</div></pre></td></tr></table></figure>
+<p>和Reader-Writer信号量不同的是，<strong>seq lock</strong>更加倾向于写，而非读。通常使用<strong>seq lock</strong>保护的写入只要没有别的写入同时进行的话都会成功。对保护内容的读取并不会影响写入。进一步讲，写入操作总会造成读取操作被不停的循环，直到没有任何写入获取这个锁。</p>
+<p>当你遇到如下的情形时，<strong>seq lock</strong>会非常的适合：</p>
+<ul>
+<li>数据拥有非常多的读取者。</li>
+<li>数据有很少的写入者。</li>
+<li>虽然有很少的写入者，但是数据更倾向于写，并且不允许读取造成写入的饥饿。</li>
+<li>数据非常的简单，例如一个简单的结构体，甚至简单的整数，但是因为某些原因，不能使用atomic变量。</li>
+</ul>
+<hr>
+<h3 id="¶-The-end"><a href="#¶-The-end" class="headerlink" title="¶ The end"></a>¶ The end</h3><p>Share Link:  <a href="http://d0u9.win/posts/3699999470.html">http://d0u9.win/posts/3699999470.html</a> </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+            <a href="/tags/Linux-Kernel/" rel="tag"># Linux Kernel</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/3912087813.html" rel="next" title="格式化C代码的工具--indent">
+                <i class="fa fa-chevron-left"></i> 格式化C代码的工具--indent
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/3752583645.html" rel="prev" title="Linux内核同步方法的比较和说明">
+                Linux内核同步方法的比较和说明 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <!-- avatar previously here -->
+              <p class="site-author-name" itemprop="name">Douglas Su</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">75</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">34</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/d0u9" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://twitter.com/D0u9Su" target="_blank" title="Twitter">
+                    
+                      <i class="fa fa-fw fa-twitter"></i>Twitter</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.facebook.com/profile.php?id=100010131587938" target="_blank" title="FB Page">
+                    
+                      <i class="fa fa-fw fa-facebook"></i>FB Page</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://stackoverflow.com/users/3824053/douglas-su" target="_blank" title="StackOverflow">
+                    
+                      <i class="fa fa-fw fa-stack-overflow"></i>StackOverflow</a>
+                </span>
+                <br />
+              
+            
+          </div>
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#目录"><span class="nav-number">1.</span> <span class="nav-text">目录</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Atomic-Operations"><span class="nav-number">2.</span> <span class="nav-text">Atomic Operations</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Atomic-Integer-Operations"><span class="nav-number">2.1.</span> <span class="nav-text">Atomic Integer Operations</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#64bit-Atomic-Operations"><span class="nav-number">2.2.</span> <span class="nav-text">64bit Atomic Operations</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Atomic-Bitwise-Operations"><span class="nav-number">2.3.</span> <span class="nav-text">Atomic Bitwise Operations</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Spin-Locks"><span class="nav-number">3.</span> <span class="nav-text">Spin Locks</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Spin-Lock-Methods"><span class="nav-number">3.1.</span> <span class="nav-text">Spin Lock Methods</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#与Spin-Lock有关的函数"><span class="nav-number">3.2.</span> <span class="nav-text">与Spin Lock有关的函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spin-Lock-amp-Bottom-Halves"><span class="nav-number">3.3.</span> <span class="nav-text">Spin Lock & Bottom Halves</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reader-Writer-Spin-Locks"><span class="nav-number">3.4.</span> <span class="nav-text">Reader-Writer Spin Locks</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spin-Lock总结"><span class="nav-number">3.5.</span> <span class="nav-text">Spin Lock总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Semaphores-信号量"><span class="nav-number">4.</span> <span class="nav-text">Semaphores (信号量)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Counting-and-Binary-Semaphores"><span class="nav-number">4.1.</span> <span class="nav-text">Counting and Binary Semaphores</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Creating-and-Initializing-Semaphore"><span class="nav-number">4.2.</span> <span class="nav-text">Creating and Initializing Semaphore</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#信号量的使用"><span class="nav-number">4.3.</span> <span class="nav-text">信号量的使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reader-Writer-Semaphores"><span class="nav-number">4.4.</span> <span class="nav-text">Reader-Writer Semaphores</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Mutex"><span class="nav-number">5.</span> <span class="nav-text">Mutex</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Completion-Variables"><span class="nav-number">6.</span> <span class="nav-text">Completion Variables</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#BKL-The-Big-Kernel-Lock"><span class="nav-number">7.</span> <span class="nav-text">BKL: The Big Kernel Lock</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Sequential-Locks"><span class="nav-number">8.</span> <span class="nav-text">Sequential Locks</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#¶-The-end"><span class="nav-number">8.0.1.</span> <span class="nav-text">¶ The end</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Douglas Su</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

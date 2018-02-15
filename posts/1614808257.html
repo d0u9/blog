@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+  <link rel="stylesheet" media="all" href="/lib/Han/dist/han.min.css?v=3.3">
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/icons/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/icons/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/icons/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/icons/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Linux,Linux Kernel,Linux Driver," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="有时，我们的设备在应用程序请求时，数据并没有准备好，这个时候应该怎么办呢？考虑如下的情形：当应用程序通过socket发送TCP数据时，我们需要先建立连接，在连接没有建立好时，应用程序要么选择等待（同步IO）要么选择暂时放弃，等会儿再来检查（异步IO）。在同步IO状态下，进程一般会被挂起，知道TCP连接已经建立成功，这事应用程序才会被唤醒。 那么我们怎么样让某个应用程序进入睡眠状态，又怎么在数据驱动">
+<meta name="keywords" content="Linux,Linux Kernel,Linux Driver">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux驱动开发--简单睡眠">
+<meta property="og:url" content="http://d0u9.win/posts/1614808257.html">
+<meta property="og:site_name" content="d0u9">
+<meta property="og:description" content="有时，我们的设备在应用程序请求时，数据并没有准备好，这个时候应该怎么办呢？考虑如下的情形：当应用程序通过socket发送TCP数据时，我们需要先建立连接，在连接没有建立好时，应用程序要么选择等待（同步IO）要么选择暂时放弃，等会儿再来检查（异步IO）。在同步IO状态下，进程一般会被挂起，知道TCP连接已经建立成功，这事应用程序才会被唤醒。 那么我们怎么样让某个应用程序进入睡眠状态，又怎么在数据驱动">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2017-11-07T14:14:16.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux驱动开发--简单睡眠">
+<meta name="twitter:description" content="有时，我们的设备在应用程序请求时，数据并没有准备好，这个时候应该怎么办呢？考虑如下的情形：当应用程序通过socket发送TCP数据时，我们需要先建立连接，在连接没有建立好时，应用程序要么选择等待（同步IO）要么选择暂时放弃，等会儿再来检查（异步IO）。在同步IO状态下，进程一般会被挂起，知道TCP连接已经建立成功，这事应用程序才会被唤醒。 那么我们怎么样让某个应用程序进入睡眠状态，又怎么在数据驱动">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://d0u9.win/posts/1614808257.html"/>
+
+
+
+
+
+  <title>Linux驱动开发--简单睡眠 | d0u9</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    
+      <img class="site-author-image" itemprop="image"
+        src="/images/avatar.png"
+        alt="Douglas Su" />
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">d0u9</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">For thine is the kingdom, the power, and the glory ...</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://d0u9.win/posts/1614808257.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Douglas Su">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="d0u9">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Linux驱动开发--简单睡眠</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-08-23T08:50:00+08:00">
+                2015-08-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/" itemprop="url" rel="index">
+                    <span itemprop="name">Science & Technology</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/Linux/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body han-init-context" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>有时，我们的设备在应用程序请求时，数据并没有准备好，这个时候应该怎么办呢？考虑如下的情形：当应用程序通过socket发送TCP数据时，我们需要先建立连接，在连接没有建立好时，应用程序要么选择等待（同步IO）要么选择暂时放弃，等会儿再来检查（异步IO）。在同步IO状态下，进程一般会被挂起，知道TCP连接已经建立成功，这事应用程序才会被唤醒。</p>
+<p>那么我们怎么样让某个应用程序进入睡眠状态，又怎么在数据驱动准备好时，唤醒等待的进程呢？</p>
+<a id="more"></a>
+<h1 id="驱动介绍"><a href="#驱动介绍" class="headerlink" title="驱动介绍"></a>驱动介绍</h1><p>在本文中，我们会实现一个简单的管道实例<code>pipe</code>设备。该设备内部包括了一个简单的环形缓冲区，当缓冲区为空时，任何读取该设备的进程会被置入睡眠状态，直到其他的进程为该设备写入数据。反之，当缓冲区满时，任何向该设备写入数据的进程将被挂起，直到有读取进程取出数据才会被唤醒。</p>
+<p>本文仅仅使用了基本的睡眠函数，在下一篇文章中我会介绍其他睡眠的高级用法。</p>
+<p>该驱动的完整代码可以在我的github中找到：<a href="https://github.com/Douglas-Su/Linux-Device-Driver-3.18/tree/master/8_pipe-simple-sleep" target="_blank" rel="external">https://github.com/Douglas-Su/Linux-Device-Driver-3.18/tree/master/8_pipe-simple-sleep</a></p>
+<h1 id="用到的函数"><a href="#用到的函数" class="headerlink" title="用到的函数"></a>用到的函数</h1><p>有关睡眠的函数都定义在了<code>&lt;linux/wait.h&gt;</code>中。在简单睡眠中我们会用到如下的函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment"> * 静态的定义一个等待队列</span></div><div class="line"><span class="comment"> */</span></div><div class="line">DECLARE_WAIT_QUEUE_HEAD(name);</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment"> * 动态的定义一个等待队列</span></div><div class="line"><span class="comment"> */</span></div><div class="line"><span class="keyword">wait_queue_head_t</span> my_queue;</div><div class="line">init_waitqueue_head(&amp;my_queue);</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment"> * 唤醒指定等待队列的所有进程</span></div><div class="line"><span class="comment"> */</span></div><div class="line">wait_event(<span class="built_in">queue</span>, condition)</div><div class="line">wait_event_interruptible(<span class="built_in">queue</span>, condition)</div><div class="line">wait_event_timeout(<span class="built_in">queue</span>, condition, timeout)</div><div class="line">wait_event_interruptible_timeout(<span class="built_in">queue</span>, condition, timeout)</div></pre></td></tr></table></figure>
+<p>这里主要说下有关唤醒的函数。</p>
+<p>这些唤醒函数中，<code>queue</code>是等待队列的头。<code>condition</code>是任意一个布尔表达式，上面的这些函数在休眠结束后都要对该表达式求职；在条件为真之前，进程会保持休眠。由于该表达式可能会被多次求值，因此对该表达式的求值被要求不能带来任何副作用。</p>
+<p>这些唤醒的函数在调用时，会唤醒指定队列中的所有进程。前两个函数的区别主要是可中断和不可中断。后两个函数在前两个函数的基础上加入了超时机制，其超时的参数的单位是<code>jiffy</code>值。到超时发生时，这两个函数都会返回<code>0</code>，而不管<code>condition</code>如何求值。</p>
+<h1 id="关键代码解析"><a href="#关键代码解析" class="headerlink" title="关键代码解析"></a>关键代码解析</h1><p>由于唤醒是对指定队列中所有的进程进行唤醒，因此我们需要小心的控制唤醒过程，避免产生竞争。</p>
+<p>先看代码</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> ssize_t <span class="title">pipe_write</span><span class="params">(struct file *file, <span class="keyword">const</span> <span class="keyword">char</span> __user * buff,</span></span></div><div class="line"><span class="function"><span class="params">              <span class="keyword">size_t</span> count, <span class="keyword">loff_t</span> * f_pos)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">buff_t</span> *<span class="title">pipe</span> = <span class="title">file</span>-&gt;<span class="title">private_data</span>;</span></div><div class="line">    <span class="keyword">if</span> (mutex_lock_interruptible(&amp;pipe-&gt;mutex))</div><div class="line">        <span class="keyword">return</span> -ERESTARTSYS;</div><div class="line"></div><div class="line">    <span class="keyword">while</span> (pipe-&gt;size == BUFF_SIZE) &#123;</div><div class="line">        mutex_unlock(&amp;pipe-&gt;mutex);</div><div class="line">        <span class="keyword">if</span> (file-&gt;f_flags &amp; O_NONBLOCK)</div><div class="line">            <span class="keyword">return</span> -EAGAIN;</div><div class="line"></div><div class="line">        PDEBUG(<span class="string">"%s(%d) is going to sleep when writing\n"</span>, current-&gt;comm,</div><div class="line">               current-&gt;pid);</div><div class="line">        <span class="keyword">if</span> (wait_event_interruptible</div><div class="line">            (pipe-&gt;write_queue, (pipe-&gt;size != BUFF_SIZE)))</div><div class="line">            <span class="keyword">return</span> -ERESTARTSYS;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (mutex_lock_interruptible(&amp;pipe-&gt;mutex))</div><div class="line">            <span class="keyword">return</span> -ERESTARTSYS;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (pipe-&gt;write_pos &gt;= pipe-&gt;read_pos)</div><div class="line">        count = min(count, (<span class="keyword">size_t</span>) (BUFF_SIZE - pipe-&gt;write_pos));</div><div class="line">    <span class="keyword">else</span></div><div class="line">        count = min(count, (<span class="keyword">size_t</span>) (pipe-&gt;read_pos - pipe-&gt;write_pos));</div><div class="line"></div><div class="line">    PDEBUG(<span class="string">"Prepare to write %li bytes\n"</span>, count);</div><div class="line">    <span class="keyword">if</span> (copy_from_user(pipe-&gt;buff + pipe-&gt;write_pos, buff, count)) &#123;</div><div class="line">        mutex_unlock(&amp;pipe-&gt;mutex);</div><div class="line">        <span class="keyword">return</span> -EFAULT;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    pipe-&gt;write_pos += count;</div><div class="line">    pipe-&gt;size += count;</div><div class="line">    <span class="keyword">if</span> (pipe-&gt;write_pos == BUFF_SIZE)</div><div class="line">        pipe-&gt;write_pos = <span class="number">0</span>;</div><div class="line"></div><div class="line">    mutex_unlock(&amp;pipe-&gt;mutex);</div><div class="line">    wake_up_interruptible(&amp;pipe-&gt;read_queue);</div><div class="line"></div><div class="line">    PDEBUG(<span class="string">"`write` finished, r_pos = %d, w_pos = %d\n"</span>, pipe-&gt;read_pos,</div><div class="line">           pipe-&gt;write_pos);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> count;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这是<code>write()</code>函数，<code>read()</code>函数与此类似。</p>
+<p>需要特别注意的是8-21行的代码，这些代码主要是为了保证，每次仅有一个进程获得临界区（缓冲区）的访问权限。每次进程被唤醒后，需要先获得该缓冲区的锁，当获得锁之后进行缓冲区判断，若条件依然不满足的话，则再次睡眠。</p>
+<p>需要注意的的是条件表达式可能会多次求值。</p>
+<hr>
+<h3 id="¶-The-end"><a href="#¶-The-end" class="headerlink" title="¶ The end"></a>¶ The end</h3><p>Share Link:  <a href="http://d0u9.win/posts/1614808257.html">http://d0u9.win/posts/1614808257.html</a> </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+            <a href="/tags/Linux-Kernel/" rel="tag"># Linux Kernel</a>
+          
+            <a href="/tags/Linux-Driver/" rel="tag"># Linux Driver</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/2768311140.html" rel="next" title="Linux驱动开发--ioctl入门">
+                <i class="fa fa-chevron-left"></i> Linux驱动开发--ioctl入门
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/3056147452.html" rel="prev" title="端午节逛北京">
+                端午节逛北京 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <!-- avatar previously here -->
+              <p class="site-author-name" itemprop="name">Douglas Su</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">75</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">34</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/d0u9" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://twitter.com/D0u9Su" target="_blank" title="Twitter">
+                    
+                      <i class="fa fa-fw fa-twitter"></i>Twitter</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.facebook.com/profile.php?id=100010131587938" target="_blank" title="FB Page">
+                    
+                      <i class="fa fa-fw fa-facebook"></i>FB Page</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://stackoverflow.com/users/3824053/douglas-su" target="_blank" title="StackOverflow">
+                    
+                      <i class="fa fa-fw fa-stack-overflow"></i>StackOverflow</a>
+                </span>
+                <br />
+              
+            
+          </div>
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#驱动介绍"><span class="nav-number">1.</span> <span class="nav-text">驱动介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#用到的函数"><span class="nav-number">2.</span> <span class="nav-text">用到的函数</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#关键代码解析"><span class="nav-number">3.</span> <span class="nav-text">关键代码解析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#¶-The-end"><span class="nav-number">3.0.1.</span> <span class="nav-text">¶ The end</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Douglas Su</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

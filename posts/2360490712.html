@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+  <link rel="stylesheet" media="all" href="/lib/Han/dist/han.min.css?v=3.3">
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/icons/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/icons/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/icons/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/icons/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Tools," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="之前一直用Wordpress搭建我的个人博客，但是用了一段时间后总觉得Wordpress有些重，对于我这种只是用博客来记录一些日常见闻和游记的人来说，不太好用。纠结了许久，通过谷哥找到了Ghost这款轻量级的，静态化的博客框架，试用了一下发现还不错。遂将安装过程记录如下：">
+<meta name="keywords" content="Tools">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ghost博客搭建">
+<meta property="og:url" content="http://d0u9.win/posts/2360490712.html">
+<meta property="og:site_name" content="d0u9">
+<meta property="og:description" content="之前一直用Wordpress搭建我的个人博客，但是用了一段时间后总觉得Wordpress有些重，对于我这种只是用博客来记录一些日常见闻和游记的人来说，不太好用。纠结了许久，通过谷哥找到了Ghost这款轻量级的，静态化的博客框架，试用了一下发现还不错。遂将安装过程记录如下：">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2017-11-07T14:22:19.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Ghost博客搭建">
+<meta name="twitter:description" content="之前一直用Wordpress搭建我的个人博客，但是用了一段时间后总觉得Wordpress有些重，对于我这种只是用博客来记录一些日常见闻和游记的人来说，不太好用。纠结了许久，通过谷哥找到了Ghost这款轻量级的，静态化的博客框架，试用了一下发现还不错。遂将安装过程记录如下：">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://d0u9.win/posts/2360490712.html"/>
+
+
+
+
+
+  <title>Ghost博客搭建 | d0u9</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    
+      <img class="site-author-image" itemprop="image"
+        src="/images/avatar.png"
+        alt="Douglas Su" />
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">d0u9</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">For thine is the kingdom, the power, and the glory ...</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://d0u9.win/posts/2360490712.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Douglas Su">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="d0u9">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Ghost博客搭建</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-11-20T18:01:00+08:00">
+                2015-11-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/" itemprop="url" rel="index">
+                    <span itemprop="name">Science & Technology</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/Tools/" itemprop="url" rel="index">
+                    <span itemprop="name">Tools</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body han-init-context" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>之前一直用Wordpress搭建我的个人博客，但是用了一段时间后总觉得Wordpress有些重，对于我这种只是用博客来记录一些日常见闻和游记的人来说，不太好用。纠结了许久，通过谷哥找到了Ghost这款轻量级的，静态化的博客框架，试用了一下发现还不错。遂将安装过程记录如下：</p>
+<a id="more"></a>
+<h1 id="环境说明"><a href="#环境说明" class="headerlink" title="环境说明"></a>环境说明</h1><p>我所用的系统为Ubuntu 14.04 X64版本。在一下的各步骤中，标记为<code>$</code>开头的为普通用户操作，标记为<code>#</code>的为root用户操作。</p>
+<h1 id="安装Mysql数据库"><a href="#安装Mysql数据库" class="headerlink" title="安装Mysql数据库"></a>安装Mysql数据库</h1><blockquote>
+<p>参考：<a href="https://allaboutghost.com/migrating-ghost-installation-from-sqlite3-to-mysql/" target="_blank" rel="external">https://allaboutghost.com/migrating-ghost-installation-from-sqlite3-to-mysql/</a></p>
+</blockquote>
+<p>由于Ghost默认使用的是sqlite数据库，为了能够更好的提升性能，也为了以后迁移数据更加方便，在本文中，我们修改Ghost的默认数据库为Mysql数据库。</p>
+<ol>
+<li><p>更新系统：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo apt-get update &amp;&amp; sudo apt-get upgrade -y</div></pre></td></tr></table></figure>
+</li>
+<li><p>安装Mysql数据库：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo apt-get install mysql-server -y</div></pre></td></tr></table></figure>
+</li>
+<li><p>配置Mysql。所有选项默认即可：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql_secure_installation</div></pre></td></tr></table></figure>
+</li>
+<li><p>登陆Mysql：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql -u root -p</div></pre></td></tr></table></figure>
+</li>
+<li><p>为Ghost新建一个数据库，执行Mysql命令：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">create</span> <span class="keyword">database</span> ghost;</div></pre></td></tr></table></figure>
+</li>
+<li><p>为Ghost创建新的数据库用户，执行Mysql命令，<font color="red">注意将其中password替换为自己的数据库密码</font>：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> <span class="string">'ghost'</span>@<span class="string">'localhost'</span> <span class="keyword">IDENTIFIED</span> <span class="keyword">BY</span> <span class="string">'password'</span>;</div></pre></td></tr></table></figure>
+</li>
+<li><p>为刚才创建的新用户赋予权限，执行Mysql命令：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">GRANT</span> ALL <span class="keyword">PRIVILEGES</span> <span class="keyword">ON</span> ghost.* <span class="keyword">TO</span> <span class="string">'ghost'</span>@<span class="string">'localhost'</span>;</div></pre></td></tr></table></figure>
+</li>
+<li><p>刷新权限，执行Mysql命令：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">flush</span> <span class="keyword">privileges</span>;</div></pre></td></tr></table></figure>
+</li>
+<li><p>退出Mysql，执行Mysql命令： </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">quit;</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h1 id="安装Nginx服务器"><a href="#安装Nginx服务器" class="headerlink" title="安装Nginx服务器"></a>安装Nginx服务器</h1><p>执行以下命令：</p>
+   <figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo apt-get <span class="keyword">install</span> -y nginx</div></pre></td></tr></table></figure>
+<h1 id="安装Ghost博客框架"><a href="#安装Ghost博客框架" class="headerlink" title="安装Ghost博客框架"></a>安装Ghost博客框架</h1><blockquote>
+<p>参考：<a href="https://www.howtoinstallghost.com/how-to-install-ghost-on-ubuntu-server-12-04/" target="_blank" rel="external">https://www.howtoinstallghost.com/how-to-install-ghost-on-ubuntu-server-12-04/</a></p>
+</blockquote>
+<ol>
+<li><p>安装必要的软件包：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo apt-get install -y zip vim wget</div></pre></td></tr></table></figure>
+</li>
+<li><p>安装Node.js：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">curl -sL https://deb.nodesource.com/setup | sudo bash -</div><div class="line">sudo apt-get install -y nodejs</div></pre></td></tr></table></figure>
+</li>
+<li><p>下载并安装Ghost：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">sudo mkdir -p /var/www/</div><div class="line"><span class="built_in">cd</span> /var/www/</div><div class="line">sudo wget https://ghost.org/zip/ghost-latest.zip</div><div class="line">sudo unzip -d ghost ghost-latest.zip</div><div class="line">sudo rm ghost-latest.zip</div><div class="line"><span class="built_in">cd</span> ghost/</div><div class="line">sudo npm install --production</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h1 id="配置Ghost使用Mysql"><a href="#配置Ghost使用Mysql" class="headerlink" title="配置Ghost使用Mysql"></a>配置Ghost使用Mysql</h1><blockquote>
+<p>参考：<a href="https://allaboutghost.com/migrating-ghost-installation-from-sqlite3-to-mysql/" target="_blank" rel="external">https://allaboutghost.com/migrating-ghost-installation-from-sqlite3-to-mysql/</a></p>
+</blockquote>
+<ol>
+<li><p>在Ghost的目录中创建配置文件：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">cd</span> /var/www/ghost</div><div class="line">sudo cp config.example.js config.js</div></pre></td></tr></table></figure>
+</li>
+<li><p>修改配置文件，使用任何你喜欢的编辑器编辑<code>config.js</code>,在<code>Production</code>这一节，修改如下内容：</p>
+<p>1) 设置本地域名，修改<code>url</code>到博客的域名。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">url: &apos;http://my-ghost-blog.com&apos;,</div></pre></td></tr></table></figure>
+<p>2) 设置Ghost使用Mysql数据库，修改：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">database: &#123;</div><div class="line">    client: &apos;mysql&apos;,</div><div class="line">    connection: &#123;</div><div class="line">        host: &apos;localhost&apos;,</div><div class="line">        user: &apos;ghost&apos;,</div><div class="line">        password: &apos;password&apos;,</div><div class="line">        database: &apos;ghost&apos;,</div><div class="line">        charset: &apos;utf8&apos;</div><div class="line">    &#125;,</div><div class="line">    debug: true</div><div class="line">&#125;,</div></pre></td></tr></table></figure>
+<p>将其中的<code>user</code>和<code>password</code>是我们之前在Mysql中创建的用户和对应的密码。<code>database</code>是我们之前创建的数据库名称。</p>
+<p>3) 让Ghost可以被外网访问，修改：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">host: &apos;127.0.0.1&apos;,</div></pre></td></tr></table></figure>
+<p>到</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">host: &apos;0.0.0.0&apos;,</div></pre></td></tr></table></figure>
+</li>
+<li><p>测试Ghost是否可以使用，执行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo npm start --production</div></pre></td></tr></table></figure>
+<p>访问<code>http://your-domain:2368</code>，看能否正常工作。</p>
+</li>
+<li><p>如果可以工作的话，我们为了安全将：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">host: &apos;0.0.0.0&apos;,</div></pre></td></tr></table></figure>
+<p>改回</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">host: &apos;127.0.0.1&apos;,</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h1 id="配置PHP环境"><a href="#配置PHP环境" class="headerlink" title="配置PHP环境"></a>配置PHP环境</h1><blockquote>
+<p>参考：<a href="https://www.digitalocean.com/community/tutorials/how-to-install-linux-nginx-mysql-php-lemp-stack-on-ubuntu-14-04" target="_blank" rel="external">https://www.digitalocean.com/community/tutorials/how-to-install-linux-nginx-mysql-php-lemp-stack-on-ubuntu-14-04</a></p>
+</blockquote>
+<ol>
+<li><p>安装PHP环境：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo apt-get install -y php5-fpm php5-mysql</div></pre></td></tr></table></figure>
+</li>
+<li><p>配置PHP：</p>
+<p>编辑<code>/etc/php5/fpm/php.ini</code>文件，找到<code>cgi.fix_pathinfo</code>字段，并将其修改为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">cgi.fix_pathinfo=0</div></pre></td></tr></table></figure>
+</li>
+<li><p>重启PHP:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo service php5-fpm restart</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h1 id="配置Nginx虚拟服务器"><a href="#配置Nginx虚拟服务器" class="headerlink" title="配置Nginx虚拟服务器"></a>配置Nginx虚拟服务器</h1><h2 id="配置Nginx反向代理Ghost"><a href="#配置Nginx反向代理Ghost" class="headerlink" title="配置Nginx反向代理Ghost"></a>配置Nginx反向代理Ghost</h2><blockquote>
+<p>参考：<a href="https://www.digitalocean.com/community/tutorials/how-to-set-up-nginx-server-blocks-virtual-hosts-on-ubuntu-14-04-lts" target="_blank" rel="external">https://www.digitalocean.com/community/tutorials/how-to-set-up-nginx-server-blocks-virtual-hosts-on-ubuntu-14-04-lts</a></p>
+</blockquote>
+<p>为了让我们的PHP网站和Ghost博客不相互影响，需要先配置两个虚拟机，一个用来反向代理Nginx，另一个用来支持PHP。</p>
+<ol>
+<li><p>配置Ghost虚拟服务器，新建Nginx的Block文件：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">cd</span> /etc/nginx/sites-available</div><div class="line">sudo cp default ghost</div></pre></td></tr></table></figure>
+<p>编辑ghost文件内容如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">server &#123;</div><div class="line">    listen 80 default_server;</div><div class="line">    listen [::]:80 default_server ipv6only=on;</div><div class="line"></div><div class="line">    server_name your-domain;</div><div class="line"></div><div class="line">    location / &#123;</div><div class="line">        proxy_set_header   X-Real-IP $remote_addr;</div><div class="line">        proxy_set_header   Host      $http_host;</div><div class="line">        proxy_pass         http://127.0.0.1:2368;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>将<code>server_name</code>修改为你的域名。</p>
+</li>
+<li><p>让刚才的配置生效：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">sudo rm /etc/nginx/sites-enabled/default</div><div class="line">sudo ln -s /etc/nginx/sites-available/ghost /etc/nginx/sites-enabled</div><div class="line">sudo service nginx restart</div></pre></td></tr></table></figure>
+</li>
+<li><p>测试是否生效：</p>
+<p>1) 启动Ghost:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">cd</span> /var/www/ghost</div><div class="line">sudo npm start --production</div></pre></td></tr></table></figure>
+<p>2) 访问你的域名或IP看是否能够打开Ghost。</p>
+</li>
+</ol>
+<h2 id="配置PHP虚拟服务器"><a href="#配置PHP虚拟服务器" class="headerlink" title="配置PHP虚拟服务器"></a>配置PHP虚拟服务器</h2><ol>
+<li><p>新建虚拟服务器文件夹：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo mkdir -p /var/www/root/html</div></pre></td></tr></table></figure>
+</li>
+<li><p>新建Nginx的Block文件：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">cd</span> /etc/nginx/sites-available</div><div class="line">sudo cp default root</div></pre></td></tr></table></figure>
+<p>修改其内容如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">server &#123;</div><div class="line">    listen 8080 default_server;</div><div class="line">    listen [::]:8080 default_server ipv6only=on;</div><div class="line"></div><div class="line">    root /var/www/root/html;</div><div class="line">    index index.php index.html index.htm;</div><div class="line"></div><div class="line">    server_name root;</div><div class="line"></div><div class="line">    location / &#123;</div><div class="line">        try_files $uri $uri/ =404;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    error_page 404 /404.html;</div><div class="line">    error_page 500 502 503 504 /50x.html;</div><div class="line">    location = /50x.html &#123;</div><div class="line">        root /usr/share/nginx/html;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    location ~ \.php$ &#123;</div><div class="line">        try_files $uri =404;</div><div class="line">        fastcgi_split_path_info ^(.+\.php)(/.+)$;</div><div class="line">        fastcgi_pass unix:/var/run/php5-fpm.sock;</div><div class="line">        fastcgi_index index.php;</div><div class="line">        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;</div><div class="line">        include fastcgi_params;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p><strong>让刚才的配置生效</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">sudo ln -s /etc/nginx/sites-available/root /etc/nginx/sites-enabled</div><div class="line">sudo service nginx restart</div></pre></td></tr></table></figure>
+</li>
+<li><p>测试是否生效</p>
+<p>新建测试文件：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo touch /var/www/root/html/index.php</div></pre></td></tr></table></figure>
+<p>编辑该文件，内容如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;?php</div><div class="line">    echo &quot;Hello World!&quot;;</div><div class="line">    echo &quot;&lt;br /&gt;&quot;;</div><div class="line">    echo date(&apos;Y - m - d&apos;);</div><div class="line">?&gt;</div></pre></td></tr></table></figure>
+<p>访问你的网页：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">http://your-domain:8080</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h1 id="让你的Ghost永久服务"><a href="#让你的Ghost永久服务" class="headerlink" title="让你的Ghost永久服务"></a>让你的Ghost永久服务</h1><blockquote>
+<p>参考：<a href="http://support.ghost.org/deploying-ghost/" target="_blank" rel="external">http://support.ghost.org/deploying-ghost/</a></p>
+</blockquote>
+<p>为了让我们的Ghost服务器不会在我们断开远程连接后关闭，我们需要进行如下设置：</p>
+<ol>
+<li><p>安装<code>forever</code>:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo npm install forever -g</div></pre></td></tr></table></figure>
+</li>
+<li><p>新建启动脚本：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo touch /var/www/ghost/start_ghost.sh</div></pre></td></tr></table></figure>
+<p>在脚本中添加如下内容：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">#! /bin/sh</div><div class="line"></div><div class="line">NODE_ENV=production forever start /var/www/ghost/index.js</div></pre></td></tr></table></figure>
+<p>赋予可执行权限：</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo chmod -R 755 /var/www/ghost/start_ghost.sh</div></pre></td></tr></table></figure>
+</li>
+<li><p>测试运行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">su</div><div class="line">/var/www/ghost/start_ghost.sh</div></pre></td></tr></table></figure>
+<p>访问你的域名，看能否打开。</p>
+<p>使用<code>forever list</code>可以查看当前运行的任务，使用<code>forever stop /var/www/ghost/index.js</code> 可以停止Ghost服务。</p>
+</li>
+</ol>
+<h1 id="设置开机启动"><a href="#设置开机启动" class="headerlink" title="设置开机启动"></a>设置开机启动</h1><ol>
+<li><p>在<code>/etc/rc.local</code>文件中，<code>exit 0</code>前添加：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/var/www/ghost/start_ghost.sh</div></pre></td></tr></table></figure>
+</li>
+<li><p>重启机器并测试。</p>
+</li>
+</ol>
+<h1 id="配置Ghost"><a href="#配置Ghost" class="headerlink" title="配置Ghost"></a>配置Ghost</h1><ol>
+<li><p>配置邮件服务。邮件服务可以赋予你的Ghost发邮件的能力。</p>
+<blockquote>
+<p>参考：<a href="http://support.ghost.org/mail/" target="_blank" rel="external">http://support.ghost.org/mail/</a></p>
+</blockquote>
+<p>这里我使用的是新注册的Gmail账户。</p>
+<p>编辑<code>/var/www/ghost/config.js</code>文件，修改其中的<code>mail</code>部分：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">mail: &#123;</div><div class="line">    transport: &apos;SMTP&apos;,</div><div class="line">    options: &#123;</div><div class="line">        service: &apos;Gmail&apos;,</div><div class="line">        auth: &#123;</div><div class="line">            user: &apos;youremail@gmail.com&apos;,</div><div class="line">            pass: &apos;yourpassword&apos;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;,</div></pre></td></tr></table></figure>
+<p>为了安全，Gmail的密码我使用的是两步验证生成的App密码。</p>
+</li>
+<li><p>配置Ghost用户。访问：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">http://your-domain/ghost/</div></pre></td></tr></table></figure>
+<p>可以打开设置页面。第一次打开该页面可以注册管理员账号。</p>
+</li>
+</ol>
+<hr>
+<h3 id="¶-The-end"><a href="#¶-The-end" class="headerlink" title="¶ The end"></a>¶ The end</h3><p>Share Link:  <a href="http://d0u9.win/posts/2360490712.html">http://d0u9.win/posts/2360490712.html</a> </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Tools/" rel="tag"># Tools</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/2052776767.html" rel="next" title="Vim configuration for Linux kernel development">
+                <i class="fa fa-chevron-left"></i> Vim configuration for Linux kernel development
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/3049455864.html" rel="prev" title="如何上科学的网">
+                如何上科学的网 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <!-- avatar previously here -->
+              <p class="site-author-name" itemprop="name">Douglas Su</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">75</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">34</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/d0u9" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://twitter.com/D0u9Su" target="_blank" title="Twitter">
+                    
+                      <i class="fa fa-fw fa-twitter"></i>Twitter</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.facebook.com/profile.php?id=100010131587938" target="_blank" title="FB Page">
+                    
+                      <i class="fa fa-fw fa-facebook"></i>FB Page</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://stackoverflow.com/users/3824053/douglas-su" target="_blank" title="StackOverflow">
+                    
+                      <i class="fa fa-fw fa-stack-overflow"></i>StackOverflow</a>
+                </span>
+                <br />
+              
+            
+          </div>
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#环境说明"><span class="nav-number">1.</span> <span class="nav-text">环境说明</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#安装Mysql数据库"><span class="nav-number">2.</span> <span class="nav-text">安装Mysql数据库</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#安装Nginx服务器"><span class="nav-number">3.</span> <span class="nav-text">安装Nginx服务器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#安装Ghost博客框架"><span class="nav-number">4.</span> <span class="nav-text">安装Ghost博客框架</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#配置Ghost使用Mysql"><span class="nav-number">5.</span> <span class="nav-text">配置Ghost使用Mysql</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#配置PHP环境"><span class="nav-number">6.</span> <span class="nav-text">配置PHP环境</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#配置Nginx虚拟服务器"><span class="nav-number">7.</span> <span class="nav-text">配置Nginx虚拟服务器</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#配置Nginx反向代理Ghost"><span class="nav-number">7.1.</span> <span class="nav-text">配置Nginx反向代理Ghost</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置PHP虚拟服务器"><span class="nav-number">7.2.</span> <span class="nav-text">配置PHP虚拟服务器</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#让你的Ghost永久服务"><span class="nav-number">8.</span> <span class="nav-text">让你的Ghost永久服务</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#设置开机启动"><span class="nav-number">9.</span> <span class="nav-text">设置开机启动</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#配置Ghost"><span class="nav-number">10.</span> <span class="nav-text">配置Ghost</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#¶-The-end"><span class="nav-number">10.0.1.</span> <span class="nav-text">¶ The end</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Douglas Su</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

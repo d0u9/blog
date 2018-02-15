@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+  <link rel="stylesheet" media="all" href="/lib/Han/dist/han.min.css?v=3.3">
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/icons/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/icons/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/icons/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/icons/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="C,Linux,Linux Kernel,Raspberry Pi," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="在深入学习Linux Device Driver 3rd ed.到控制外部硬件和中断时，我发现书中的例子使用的并口在当前的环境下无法找到了（至少我这里时这样的，很难找到带并口的计算机了）。但是，又不能随便的跳过这么具有实践性的一章。思来想去，无意中看到了桌上的树莓派，于是产生了在树莓派上直接利用GPIO来测试和学习驱动的想法，那么第一步就是搭建驱动的编译运行环境了 准备工作参考的资料列表能够完成本">
+<meta name="keywords" content="C,Linux,Linux Kernel,Raspberry Pi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="为树莓派交叉编译内核">
+<meta property="og:url" content="http://d0u9.win/posts/2216838708.html">
+<meta property="og:site_name" content="d0u9">
+<meta property="og:description" content="在深入学习Linux Device Driver 3rd ed.到控制外部硬件和中断时，我发现书中的例子使用的并口在当前的环境下无法找到了（至少我这里时这样的，很难找到带并口的计算机了）。但是，又不能随便的跳过这么具有实践性的一章。思来想去，无意中看到了桌上的树莓派，于是产生了在树莓派上直接利用GPIO来测试和学习驱动的想法，那么第一步就是搭建驱动的编译运行环境了 准备工作参考的资料列表能够完成本">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2017-11-07T14:19:55.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="为树莓派交叉编译内核">
+<meta name="twitter:description" content="在深入学习Linux Device Driver 3rd ed.到控制外部硬件和中断时，我发现书中的例子使用的并口在当前的环境下无法找到了（至少我这里时这样的，很难找到带并口的计算机了）。但是，又不能随便的跳过这么具有实践性的一章。思来想去，无意中看到了桌上的树莓派，于是产生了在树莓派上直接利用GPIO来测试和学习驱动的想法，那么第一步就是搭建驱动的编译运行环境了 准备工作参考的资料列表能够完成本">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://d0u9.win/posts/2216838708.html"/>
+
+
+
+
+
+  <title>为树莓派交叉编译内核 | d0u9</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    
+      <img class="site-author-image" itemprop="image"
+        src="/images/avatar.png"
+        alt="Douglas Su" />
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">d0u9</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">For thine is the kingdom, the power, and the glory ...</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://d0u9.win/posts/2216838708.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Douglas Su">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="d0u9">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">为树莓派交叉编译内核</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-08-31T10:30:00+08:00">
+                2015-08-31
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/" itemprop="url" rel="index">
+                    <span itemprop="name">Science & Technology</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/Raspberry-Pi/" itemprop="url" rel="index">
+                    <span itemprop="name">Raspberry Pi</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body han-init-context" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>在深入学习Linux Device Driver 3rd ed.到控制外部硬件和中断时，我发现书中的例子使用的并口在当前的环境下无法找到了（至少我这里时这样的，很难找到带并口的计算机了）。但是，又不能随便的跳过这么具有实践性的一章。思来想去，无意中看到了桌上的树莓派，于是产生了在树莓派上直接利用GPIO来测试和学习驱动的想法，那么第一步就是搭建驱动的编译运行环境了</p>
+<h1 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h1><h2 id="参考的资料列表"><a href="#参考的资料列表" class="headerlink" title="参考的资料列表"></a>参考的资料列表</h2><p>能够完成本次任务要特别感谢Google（注意一定是Google而不是baidu）做出的杰出贡献，其次下面列出的参考资料更有实质性的内容：</p>
+<ol>
+<li><a href="https://www.raspberrypi.org/documentation/linux/kernel/building.md" target="_blank" rel="external">https://www.raspberrypi.org/documentation/linux/kernel/building.md</a></li>
+<li><a href="http://www.satsignal.eu/raspberry-pi/kernel-recompile.html" target="_blank" rel="external">http://www.satsignal.eu/raspberry-pi/kernel-recompile.html</a></li>
+<li><a href="http://elinux.org/Raspberry_Pi_Kernel_Compilation" target="_blank" rel="external">http://elinux.org/Raspberry_Pi_Kernel_Compilation</a></li>
+</ol>
+<a id="more"></a>
+<h1 id="交叉编译的系统要求"><a href="#交叉编译的系统要求" class="headerlink" title="交叉编译的系统要求"></a>交叉编译的系统要求</h1><p>这里我使用了安装有<strong>Debian</strong>系统的X86架构计算机。这里强烈建议你使用Linux操作系统来安装交叉编译工具。</p>
+<h1 id="安装交叉编译工具链"><a href="#安装交叉编译工具链" class="headerlink" title="安装交叉编译工具链"></a>安装交叉编译工具链</h1><p>下载最新的交叉编译工具，下载坐标 -&gt; <a href="https://github.com/raspberrypi/tools" target="_blank" rel="external">https://github.com/raspberrypi/tools</a>。<br>将工具放置在一个合适的位置（关键看你觉得哪里合适了，可以是/，也可以是~）。<br>将工具链文件夹下的<strong>/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin</strong>（如果你的主机是64位系统，请用<strong>/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin</strong>)路径加入到当前用户的环境变量中。</p>
+<h1 id="下载内核源文件"><a href="#下载内核源文件" class="headerlink" title="下载内核源文件"></a>下载内核源文件</h1><p>下载内核文件有两种方法：</p>
+<ol>
+<li>在 <a href="https://github.com/raspberrypi/linux" target="_blank" rel="external">https://github.com/raspberrypi/linux</a> 下载。需要注意的是，该repo有很多的分支，请选择自己需要使用的分支。</li>
+<li>在树莓派上使用<code>sudo apt-get install linux-source-X.X</code>来下载需要的X.X版本内核。下载完成后可以在树莓派的<code>/usr/src/</code>目录下找到内核源码的压缩包，将其远程复制到我们的交叉编译主机即可。</li>
+</ol>
+<h1 id="交叉编译"><a href="#交叉编译" class="headerlink" title="交叉编译"></a>交叉编译</h1><p>到这一步我们就离成功不远咯。</p>
+<ol>
+<li>首先我们需要建立几个环境变量，在交叉编译的过程中使用：<ul>
+<li><code>CROSS_COMPILE=arm-linux-gnueabihf-</code>用以指定我们的交叉编译器。</li>
+<li><code>KERNEL=kernel7</code>，用处不详，但是官方的指南中写了，就照做吧。</li>
+</ul>
+</li>
+<li>解压并进入内核源码目录，并执行如下的命令:<ul>
+<li>make ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} mrproper</li>
+<li>make ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} clean</li>
+</ul>
+</li>
+<li>将原来内核的配置文件用做我们新内核的配置（如果不需要，可以跳过）:<ul>
+<li>在树莓派上执行<code>zcat /proc/config.gz &gt; ~/config</code>。</li>
+<li>将生成的<code>~/config</code>文件复制到交叉编译主机中内核源码树下。</li>
+</ul>
+</li>
+<li>如果编译环境没有安装<code>ncurses</code>，则需要先安装<code>sudo apt-get install libncurses-dev</code>。安装好之后进行内核的配置：<ul>
+<li>执行<code>make ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} menuconfig</code>。</li>
+<li>在界面中选择所需的配置选项，保存并退出。</li>
+</ul>
+</li>
+<li>执行<code>make ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} zImage</code>编译内核。刻意使用<code>-j n</code>来指定编译参与的核心数量。</li>
+<li>执行<code>make ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} modules</code>编译模块。刻意使用<code>-j n</code>来指定编译参与的核心数量。</li>
+<li>执行<code>make ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} dtbs</code>来执行一些其他的工作，同样可以使用<code>-j n</code>来执行参与的核数。</li>
+<li>安装新的内核：<ul>
+<li>首先生成模块目录：<ul>
+<li>设置环境变量export MODULES_TEMP=~/modules，用以临时保存生成的模块。</li>
+<li>执行<code>make ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} INSTALL_MOD_PATH=${MODULES_TEMP} modules_install</code>安装模块到临时目录。</li>
+</ul>
+</li>
+<li>复制模块和内核镜像<ul>
+<li>将源码目录中<code>arch/arm/boot/zImage</code>复制到树莓派的<code>/boot/</code>中，<strong>注意将其重新命名</strong>为一个新的名字，这里使用<code>kernel_new.img</code>。修改树莓派的/boot/config.txt文件，修改其中的kernel=kernel_new.img，如果没有此项目，可以新建。</li>
+<li>将生成的模块复制到树莓派中，将目录<code>lib/modules/</code>中生成的文件夹复制到树莓派的<code>/lib/modules/</code>中。</li>
+</ul>
+</li>
+<li>修改文件，使得默认启动新的内核。<ul>
+<li>修改树莓派的<code>/boot/config.txt</code>文件，修改其中的<code>kernel=kernel_new.img</code>，如果没有此项目，可以新建。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>重启！！</li>
+</ol>
+<h1 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h1><p>用这种方法编译的内核，并不能直接用来进行驱动的编译。如果需要编译驱动，依然要使用交叉编译。</p>
+<hr>
+<h3 id="¶-The-end"><a href="#¶-The-end" class="headerlink" title="¶ The end"></a>¶ The end</h3><p>Share Link:  <a href="http://d0u9.win/posts/2216838708.html">http://d0u9.win/posts/2216838708.html</a> </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/C/" rel="tag"># C</a>
+          
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+            <a href="/tags/Linux-Kernel/" rel="tag"># Linux Kernel</a>
+          
+            <a href="/tags/Raspberry-Pi/" rel="tag"># Raspberry Pi</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/1447766914.html" rel="next" title="Linux驱动开发--内核内存管理">
+                <i class="fa fa-chevron-left"></i> Linux驱动开发--内核内存管理
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/688194006.html" rel="prev" title="拉萨">
+                拉萨 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <!-- avatar previously here -->
+              <p class="site-author-name" itemprop="name">Douglas Su</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">75</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">34</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/d0u9" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://twitter.com/D0u9Su" target="_blank" title="Twitter">
+                    
+                      <i class="fa fa-fw fa-twitter"></i>Twitter</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.facebook.com/profile.php?id=100010131587938" target="_blank" title="FB Page">
+                    
+                      <i class="fa fa-fw fa-facebook"></i>FB Page</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://stackoverflow.com/users/3824053/douglas-su" target="_blank" title="StackOverflow">
+                    
+                      <i class="fa fa-fw fa-stack-overflow"></i>StackOverflow</a>
+                </span>
+                <br />
+              
+            
+          </div>
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#准备工作"><span class="nav-number">1.</span> <span class="nav-text">准备工作</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#参考的资料列表"><span class="nav-number">1.1.</span> <span class="nav-text">参考的资料列表</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#交叉编译的系统要求"><span class="nav-number">2.</span> <span class="nav-text">交叉编译的系统要求</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#安装交叉编译工具链"><span class="nav-number">3.</span> <span class="nav-text">安装交叉编译工具链</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#下载内核源文件"><span class="nav-number">4.</span> <span class="nav-text">下载内核源文件</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#交叉编译"><span class="nav-number">5.</span> <span class="nav-text">交叉编译</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#注意事项"><span class="nav-number">6.</span> <span class="nav-text">注意事项</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#¶-The-end"><span class="nav-number">6.0.1.</span> <span class="nav-text">¶ The end</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Douglas Su</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+  <link rel="stylesheet" media="all" href="/lib/Han/dist/han.min.css?v=3.3">
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/icons/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/icons/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/icons/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/icons/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Linux,Linux Kernel,Linux Driver," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="由于int single_open()函数提供的功能相对较为简单，在需要输出较多数据的情况下，实现起来比较复杂。 为了让内核开发工作更加容易，通过对/proc代码的整理而增加了seq_file接口。这一接口为大的内核虚拟文件提供了一组简单的函数。">
+<meta name="keywords" content="Linux,Linux Kernel,Linux Driver">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux驱动开发--使用seq_file的proc实现">
+<meta property="og:url" content="http://d0u9.win/posts/403755856.html">
+<meta property="og:site_name" content="d0u9">
+<meta property="og:description" content="由于int single_open()函数提供的功能相对较为简单，在需要输出较多数据的情况下，实现起来比较复杂。 为了让内核开发工作更加容易，通过对/proc代码的整理而增加了seq_file接口。这一接口为大的内核虚拟文件提供了一组简单的函数。">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://oyui6c341.bkt.clouddn.com/images/2015/linux驱动_使用seq_file的proc实现/01.png">
+<meta property="og:updated_time" content="2017-11-07T14:02:45.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux驱动开发--使用seq_file的proc实现">
+<meta name="twitter:description" content="由于int single_open()函数提供的功能相对较为简单，在需要输出较多数据的情况下，实现起来比较复杂。 为了让内核开发工作更加容易，通过对/proc代码的整理而增加了seq_file接口。这一接口为大的内核虚拟文件提供了一组简单的函数。">
+<meta name="twitter:image" content="http://oyui6c341.bkt.clouddn.com/images/2015/linux驱动_使用seq_file的proc实现/01.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://d0u9.win/posts/403755856.html"/>
+
+
+
+
+
+  <title>Linux驱动开发--使用seq_file的proc实现 | d0u9</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    
+      <img class="site-author-image" itemprop="image"
+        src="/images/avatar.png"
+        alt="Douglas Su" />
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">d0u9</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">For thine is the kingdom, the power, and the glory ...</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://d0u9.win/posts/403755856.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Douglas Su">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="d0u9">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Linux驱动开发--使用seq_file的proc实现</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-08-18T16:30:00+08:00">
+                2015-08-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/" itemprop="url" rel="index">
+                    <span itemprop="name">Science & Technology</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/Linux/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body han-init-context" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>由于<code>int single_open()</code>函数提供的功能相对较为简单，在需要输出较多数据的情况下，实现起来比较复杂。</p>
+<p>为了让内核开发工作更加容易，通过对<strong>/proc</strong>代码的整理而增加了<strong>seq_file</strong>接口。这一接口为大的内核虚拟文件提供了一组简单的函数。</p>
+<a id="more"></a>
+<h1 id="seq-file介绍"><a href="#seq-file介绍" class="headerlink" title="seq_file介绍"></a>seq_file介绍</h1><p><strong>seq_file</strong>本质上其实是一个迭代器，因此在使用的时候，首先需要先建立四个迭代器对象，其分别为<code>start()</code>, <code>next()</code>, <code>stop()</code>, <code>show()</code>。这四个迭代器会用来初始化结构<code>struct seq_operations</code>中的四个对应字段。</p>
+<p>我们将<strong>/proc</strong>的<code>open()</code>方法简单的替换为<code>seq_open()</code>方法。<code>seq_open()</code>会被传入一个<code>struct seq_operations</code>结构，其中包含了迭代器的四个对象。这样后续的工作就可以由<code>seq_file</code>来接管了。</p>
+<p><strong>seq_file</strong>的具体工作流程如下图：</p>
+<p><img src="http://oyui6c341.bkt.clouddn.com/images/2015/linux驱动_使用seq_file的proc实现/01.png" alt=""></p>
+<p>在<code>seq_file</code>工作的开始，会首先调用<code>start()</code>对象，该对象会完成一些初始化，之后整个<code>seq_file</code>会根据<code>start()</code>对象的返回值决定是否结束。如果<code>start()</code>返回的不是<code>NULL</code>，则反复继续调用<code>next()</code>方法，直到<code>next()</code>返回<code>NULL</code>退出循环，最后会调用<code>stop()</code>方法来进行一些收尾工作。之后再次进行上述流程。</p>
+<p><strong>这里一定要注意的是，整个流程的唯一出口是由<code>start()</code>的返回值决定的，而非<code>stop()</code>。博主在这里折腾了很久，最终才注意到这个问题。</strong></p>
+<p>在｀start()｀和｀stop()｀返回不为｀NULL｀时，会调用｀show()方法，将具体的数据输出。</p>
+<p><strong><code>seq_file</code>能够保证在<code>start()</code>方法和<code>stop()</code>方法之间不会有非原子的操作。我们可以确信，<code>start()</code>被调用之后会马上调用<code>stop()</code>。</strong></p>
+<h1 id="用到的函数和头文件"><a href="#用到的函数和头文件" class="headerlink" title="用到的函数和头文件"></a>用到的函数和头文件</h1><p>需要包含的头文件如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/fs.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/proc_fs.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/seq_file.h&gt;</span></span></div></pre></td></tr></table></figure>
+<p>有关<strong>/proc</strong>文件系统的函数定义可以在源码树的<strong>include/linux/proc_fs.h</strong>中找到。</p>
+<p>四个迭代器的原型如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment"> * start - 初始seq_file</span></div><div class="line"><span class="comment"> * @sfile: 表明当前使用的seq_file的结构体</span></div><div class="line"><span class="comment"> * @pos: 当前处理的位置</span></div><div class="line"><span class="comment"> *</span></div><div class="line"><span class="comment"> * start方法用以初始化seq_file的相关操作，如果该函数返回NULL，则整个过程结束。</span></div><div class="line"><span class="comment"> * *pos不必非要按照字节计算，例如，*pos可以用以表示当前读到数组的某一个项。</span></div><div class="line"><span class="comment"> * start方法的返回值会在其他的对象中作为输入函数，因此你可以返回一个数据在后续使用，例如链表当前节点的地址。</span></div><div class="line"><span class="comment"> */</span></div><div class="line"><span class="function"><span class="keyword">void</span> *<span class="title">start</span><span class="params">(struct seq_file *sfile, <span class="keyword">loff_t</span> *pos)</span></span>;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment"> * next - 迭代</span></div><div class="line"><span class="comment"> * @sfile: 表明当前使用的seq_file的结构体</span></div><div class="line"><span class="comment"> * @v: 由上一次next或start的返回值</span></div><div class="line"><span class="comment"> * @pos: 处理位置</span></div><div class="line"><span class="comment"> */</span></div><div class="line"><span class="function"><span class="keyword">void</span> *<span class="title">next</span><span class="params">(struct seq_file *sfile, <span class="keyword">void</span> *v, <span class="keyword">loff_t</span> *pos)</span></span>;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment"> * @sfile: 表明当前使用的seq_file的结构体</span></div><div class="line"><span class="comment"> * @v: 由上一次next或start的返回值</span></div><div class="line"><span class="comment"> */</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">stop</span><span class="params">(struct seq_file *sfile, <span class="keyword">void</span> *v)</span></span>;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment"> * show - 将内容输出</span></div><div class="line"><span class="comment"> * @sfile: 表明当前使用的seq_file的结构体</span></div><div class="line"><span class="comment"> * @v: 由上一次next或start的返回值</span></div><div class="line"><span class="comment"> *</span></div><div class="line"><span class="comment"> * 由`seq_printf()`系列函数将最后的结构输出。</span></div><div class="line"><span class="comment"> */</span></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">show</span><span class="params">(struct seq_file *sfile, <span class="keyword">void</span> *v)</span></span>;</div></pre></td></tr></table></figure>
+<h1 id="一个示例"><a href="#一个示例" class="headerlink" title="一个示例"></a>一个示例</h1><p>在这个示例中，我们将完成一个叫做<strong>proc-fs-iterator.ko</strong>的模块。模块加载完成后会在<strong>/proc</strong>中创建一个叫做<strong>proc-fs-iterator</strong>的文件。这个模块内部使用内核提供的双链表来完成输入的存储。在设备刚加载的时候，链表没有任何的节点。每次我们向<strong>/proc/proc-fs-iterator</strong>文件写入数据的时候，写入的数据会保存在链表的一个节点中。</p>
+<p>当从该文件读出数据的时候，我们使用<strong>seq_file</strong>的迭代器完成每一个链表节点的遍历，从而输出所有的数据。</p>
+<p>在此我们只对主要的函数进行说明，完整的函数可以在<a href="https://github.com/d0u9/Linux-Device-Driver/tree/master/05_proc_fs_iterator" target="_blank" rel="external">我的Github上找到</a>。</p>
+<h2 id="从-proc文件中读取数据。"><a href="#从-proc文件中读取数据。" class="headerlink" title="从/proc文件中读取数据。"></a>从/proc文件中读取数据。</h2><p>其实从一个<strong>/proc</strong>文件中读取数据相对来说是稍微复杂一点的。其具体的步骤是将<code>/proc</code>文件当作一个普通的设备文件，在<code>struct file_operations</code>中绑定我们自己定义的<code>write()</code>函数，从而完成数据的读写。</p>
+<p>在此，我们每次写的写操作均会创造一个新的链表节点，从而保存我们的数据。需要注意的是在这里，并非每次<strong>open</strong>创建新的节点，而是<strong>write</strong>。</p>
+<p>函数如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/*</span></div><div class="line"><span class="comment"> * WARNING: For the purpose of simplifying codes, we have no locks here to</span></div><div class="line"><span class="comment"> * pretect list head from concurrent access. So, obviously, it is unsafe.</span></div><div class="line"><span class="comment"> */</span></div><div class="line"><span class="keyword">ssize_t</span> proc_write(struct file *filp, <span class="keyword">const</span> <span class="keyword">char</span> __user *buff, <span class="keyword">size_t</span> count,</div><div class="line">    <span class="keyword">loff_t</span> *f_pos)</div><div class="line">&#123;</div><div class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">store_node</span> *<span class="title">cur_node</span> = <span class="title">NULL</span>;</span></div><div class="line">    PDEBUG(<span class="string">"Write function is invoked\n"</span>);</div><div class="line"></div><div class="line">    cur_node = (struct store_node *) kmalloc(<span class="keyword">sizeof</span>(*cur_node), GFP_KERNEL);</div><div class="line">    <span class="keyword">if</span> (!cur_node)</div><div class="line">        <span class="keyword">return</span> -ENOMEM;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (!(cur_node-&gt;buf = kmalloc(count + <span class="number">1</span>, GFP_KERNEL))) &#123;</div><div class="line">        kfree(cur_node);</div><div class="line">        <span class="keyword">return</span> -ENOMEM;</div><div class="line">    &#125;</div><div class="line">    <span class="built_in">memset</span>(cur_node-&gt;buf, <span class="number">0</span>, count + <span class="number">1</span>);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (copy_from_user(cur_node-&gt;buf, buff, count)) &#123;</div><div class="line">        kfree(cur_node-&gt;buf);</div><div class="line">        kfree(cur_node);</div><div class="line">        <span class="keyword">return</span> -EFAULT;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    INIT_LIST_HEAD(&amp;cur_node-&gt;<span class="built_in">list</span>);</div><div class="line">    list_add_tail(&amp;cur_node-&gt;<span class="built_in">list</span>, &amp;store_list_head.<span class="built_in">list</span>);</div><div class="line">    atomic_inc(&amp;store_list_head.n);</div><div class="line"></div><div class="line">    PDEBUG(<span class="string">"write %zd bytes, data is: '%s'\n"</span>, count, cur_node-&gt;buf);</div><div class="line">    PDEBUG(<span class="string">"Write function has finished\n"</span>);</div><div class="line">    <span class="keyword">return</span> count;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这里要注意的是，为了简化我们的函数，整个链表并没有用任何锁机制来保护，这也就是说，在两个进程同时写入的时候会产生竞争，从而造成数据的不完整或者链表的奔溃。</p>
+<h1 id="用seq-file来迭代的读取-proc-文件"><a href="#用seq-file来迭代的读取-proc-文件" class="headerlink" title="用seq_file来迭代的读取/proc/文件"></a>用seq_file来迭代的读取/proc/文件</h1><h2 id="proc的文件操作对象"><a href="#proc的文件操作对象" class="headerlink" title="/proc的文件操作对象"></a><strong>/proc</strong>的文件操作对象</h2><p>和任何文件一样，我们的<strong>/proc</strong>文件也需要一组自定义的操作，这些操作应该同样的在<code>struct file_operations</code>中说明：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">file_operations</span> <span class="title">proc_fops</span> = &#123;</span></div><div class="line">    .owner = THIS_MODULE,</div><div class="line">    .write = proc_write,</div><div class="line">    .open = proc_seq_open,</div><div class="line">    .read = seq_read,</div><div class="line">    .llseek = seq_lseek,</div><div class="line">    .release = seq_release,</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>这里的<code>proc_write()</code>函数是我们在<em>0x03:0x01</em>节中定义的函数。<code>seq_read()</code>，<code>seq_lseek()</code>，<code>seq_release()</code>是<strong>seq_file</strong>库的内置函数，他们自动帮我们完成外部对<strong>proc</strong>文件的读取任务，这里我们需要定义的是<code>proc_seq_open()</code>函数。</p>
+<h2 id="proc-seq-open-函数"><a href="#proc-seq-open-函数" class="headerlink" title="proc_seq_open()函数"></a><code>proc_seq_open()</code>函数</h2><p>这个函数的主要任务是作为标准文件的<code>open()</code>函数和<code>seq_open()</code>函数的桥梁。<code>seq_open()</code>函数的原型如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">seq_open</span><span class="params">(struct inode *inode, struct seq_operations *seq_ops)</span></span>;</div></pre></td></tr></table></figure>
+<p>第一个参数是标准<code>open()</code>函数传入的<code>struct inode</code>结构的地址。第二个函数是一个结构，其中的指针指向了我们自定义的四个seq_file迭代器对象。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">seq_operations</span> <span class="title">proc_seq_ops</span> = &#123;</span></div><div class="line">    .start = proc_seq_start,</div><div class="line">    .next = proc_seq_next,</div><div class="line">    .stop = proc_seq_stop,</div><div class="line">    .show = proc_seq_show,</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>其中的<code>proc_seq_start()</code>，<code>proc_seq_next()</code>，<code>proc_seq_stop()</code>，<code>proc_seq_show()</code>分别为我们自己定义的四个迭代器对象。</p>
+<p>最后我们的<code>proc_seq_open()</code>函数如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">proc_seq_open</span><span class="params">(struct inode *inode, struct file *filp)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> seq_open(filp, &amp;proc_seq_ops);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>它只是我们对<code>seq_open()</code>函数的一个封装。</p>
+<h2 id="start迭代器对象"><a href="#start迭代器对象" class="headerlink" title="start迭代器对象"></a><code>start</code>迭代器对象</h2><p><code>start</code>对象的主要作用时判断是否要继续迭代。当该函数返回<code>NULL</code>的时候，则停止迭代。需要注意的是，<code>start</code>才是整个<code>seq_file</code>的唯一退出位置，而非<code>stop</code>对象。</p>
+<p>我们的<code>start</code>对象定义如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> *<span class="title">proc_seq_start</span><span class="params">(struct seq_file *s_file, <span class="keyword">loff_t</span> *pos)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    PDEBUG(<span class="string">"seq file start\n"</span>);</div><div class="line">    <span class="keyword">if</span> (*pos &gt;= atomic_read(&amp;store_list_head.n))</div><div class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</div><div class="line">    <span class="keyword">if</span> (list_empty(&amp;store_list_head.<span class="built_in">list</span>))</div><div class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</div><div class="line">    <span class="keyword">return</span> list_first_entry(&amp;store_list_head.<span class="built_in">list</span>, struct store_node, <span class="built_in">list</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>其中的退出条件为：</p>
+<ol>
+<li>链表为空时</li>
+<li>已经遍历完了所有的链表节点</li>
+</ol>
+<h2 id="next迭代器对象"><a href="#next迭代器对象" class="headerlink" title="next迭代器对象"></a><code>next</code>迭代器对象</h2><p><code>next</code>对象的作用是当上一次的<code>next</code>返回不为<code>NULL</code>时，继续进行迭代。参数表中的<code>void *</code>类型指针作为输入参数，其值时上一次<code>next</code>或<code>start</code>返回的地址，这个地址可以用作我们自己的参数。</p>
+<p>具体实现如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> *<span class="title">proc_seq_next</span><span class="params">(struct seq_file *s_file, <span class="keyword">void</span> *v, <span class="keyword">loff_t</span> *pos)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">store_node</span> *<span class="title">tmp</span> = <span class="title">NULL</span>;</span></div><div class="line">    PDEBUG(<span class="string">"seq file next\n"</span>);</div><div class="line">    PDEBUG(<span class="string">"operate at pos: %lld\n"</span>, *pos);</div><div class="line">    (*pos)++;</div><div class="line">    tmp = list_next_entry((struct store_node *)v, <span class="built_in">list</span>);</div><div class="line">    <span class="keyword">if</span> (&amp;tmp-&gt;<span class="built_in">list</span> == &amp;store_list_head.<span class="built_in">list</span>) &#123;</div><div class="line">        PDEBUG(<span class="string">"seq next will return NULL\n"</span>);</div><div class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    PDEBUG(<span class="string">"seq file now is returning %p\n"</span>, tmp);</div><div class="line">    <span class="keyword">return</span> tmp;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="stop迭代器对象"><a href="#stop迭代器对象" class="headerlink" title="stop迭代器对象"></a><code>stop</code>迭代器对象</h2><p>当<code>next</code>返回<code>NULL</code>时，会调用<code>stop</code>迭代器对象，该迭代器对象的主要目的是进行某些资源的释放，在这里我们没有什么需要释放的资源，因此该函数为空。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">proc_seq_stop</span><span class="params">(struct seq_file *s_file, <span class="keyword">void</span> *v)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    PDEBUG(<span class="string">"seq stop\n"</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="show迭代器对象"><a href="#show迭代器对象" class="headerlink" title="show迭代器对象"></a><code>show</code>迭代器对象</h3><p>在<code>start</code>和<code>next</code>返回不为<code>NULL</code>的时候，<code>show</code>会被调用，在<code>show</code>中可以使用<code>seq_printf()</code>系列的函数对变量内容进行输出。 具体可以参考这篇文章的2.3节最后部分。</p>
+<h1 id="全部的代码"><a href="#全部的代码" class="headerlink" title="全部的代码"></a>全部的代码</h1><p>见<a href="https://github.com/d0u9/Linux-Device-Driver/tree/master/05_proc_fs_iterator" target="_blank" rel="external">https://github.com/d0u9/Linux-Device-Driver/tree/master/05_proc_fs_iterator</a>.</p>
+<hr>
+<h3 id="¶-The-end"><a href="#¶-The-end" class="headerlink" title="¶ The end"></a>¶ The end</h3><p>Share Link:  <a href="http://d0u9.win/posts/403755856.html">http://d0u9.win/posts/403755856.html</a> </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+            <a href="/tags/Linux-Kernel/" rel="tag"># Linux Kernel</a>
+          
+            <a href="/tags/Linux-Driver/" rel="tag"># Linux Driver</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/2901188138.html" rel="next" title="Linux驱动开发--proc文件系统">
+                <i class="fa fa-chevron-left"></i> Linux驱动开发--proc文件系统
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/2314391335.html" rel="prev" title="北京难得好天气">
+                北京难得好天气 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <!-- avatar previously here -->
+              <p class="site-author-name" itemprop="name">Douglas Su</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">75</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">34</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/d0u9" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://twitter.com/D0u9Su" target="_blank" title="Twitter">
+                    
+                      <i class="fa fa-fw fa-twitter"></i>Twitter</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.facebook.com/profile.php?id=100010131587938" target="_blank" title="FB Page">
+                    
+                      <i class="fa fa-fw fa-facebook"></i>FB Page</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://stackoverflow.com/users/3824053/douglas-su" target="_blank" title="StackOverflow">
+                    
+                      <i class="fa fa-fw fa-stack-overflow"></i>StackOverflow</a>
+                </span>
+                <br />
+              
+            
+          </div>
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#seq-file介绍"><span class="nav-number">1.</span> <span class="nav-text">seq_file介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#用到的函数和头文件"><span class="nav-number">2.</span> <span class="nav-text">用到的函数和头文件</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#一个示例"><span class="nav-number">3.</span> <span class="nav-text">一个示例</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#从-proc文件中读取数据。"><span class="nav-number">3.1.</span> <span class="nav-text">从/proc文件中读取数据。</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#用seq-file来迭代的读取-proc-文件"><span class="nav-number">4.</span> <span class="nav-text">用seq_file来迭代的读取/proc/文件</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#proc的文件操作对象"><span class="nav-number">4.1.</span> <span class="nav-text">/proc的文件操作对象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#proc-seq-open-函数"><span class="nav-number">4.2.</span> <span class="nav-text">proc_seq_open()函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#start迭代器对象"><span class="nav-number">4.3.</span> <span class="nav-text">start迭代器对象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#next迭代器对象"><span class="nav-number">4.4.</span> <span class="nav-text">next迭代器对象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#stop迭代器对象"><span class="nav-number">4.5.</span> <span class="nav-text">stop迭代器对象</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#show迭代器对象"><span class="nav-number">4.5.1.</span> <span class="nav-text">show迭代器对象</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#全部的代码"><span class="nav-number">5.</span> <span class="nav-text">全部的代码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#¶-The-end"><span class="nav-number">5.0.1.</span> <span class="nav-text">¶ The end</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Douglas Su</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

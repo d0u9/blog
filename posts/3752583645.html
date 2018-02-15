@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+  <link rel="stylesheet" media="all" href="/lib/Han/dist/han.min.css?v=3.3">
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/icons/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/icons/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/icons/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/icons/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Linux,Linux Kernel," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Linux内核给我们提供了大量的同步方法，例如spin locks，reader-writer spin locks，semaphores，reader-writer semaphores，BKL，seq locks等等。那么这些同步方法都有什么不同，在哪种情况下选择哪些方法才合适呢？">
+<meta name="keywords" content="Linux,Linux Kernel">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux内核同步方法的比较和说明">
+<meta property="og:url" content="http://d0u9.win/posts/3752583645.html">
+<meta property="og:site_name" content="d0u9">
+<meta property="og:description" content="Linux内核给我们提供了大量的同步方法，例如spin locks，reader-writer spin locks，semaphores，reader-writer semaphores，BKL，seq locks等等。那么这些同步方法都有什么不同，在哪种情况下选择哪些方法才合适呢？">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2017-11-07T13:59:06.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux内核同步方法的比较和说明">
+<meta name="twitter:description" content="Linux内核给我们提供了大量的同步方法，例如spin locks，reader-writer spin locks，semaphores，reader-writer semaphores，BKL，seq locks等等。那么这些同步方法都有什么不同，在哪种情况下选择哪些方法才合适呢？">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://d0u9.win/posts/3752583645.html"/>
+
+
+
+
+
+  <title>Linux内核同步方法的比较和说明 | d0u9</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    
+      <img class="site-author-image" itemprop="image"
+        src="/images/avatar.png"
+        alt="Douglas Su" />
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">d0u9</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">For thine is the kingdom, the power, and the glory ...</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://d0u9.win/posts/3752583645.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Douglas Su">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="d0u9">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Linux内核同步方法的比较和说明</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-08-01T08:12:00+08:00">
+                2015-08-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/" itemprop="url" rel="index">
+                    <span itemprop="name">Science & Technology</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/Linux/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body han-init-context" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Linux内核给我们提供了大量的同步方法，例如spin locks，reader-writer spin locks，semaphores，reader-writer semaphores，BKL，seq locks等等。那么这些同步方法都有什么不同，在哪种情况下选择哪些方法才合适呢？</p>
+<a id="more"></a>
+<h1 id="Semaphores-VS-Spin-Locks"><a href="#Semaphores-VS-Spin-Locks" class="headerlink" title="Semaphores VS Spin Locks"></a>Semaphores VS Spin Locks</h1><p><strong>有关Spin Lock需要知道以下的几点</strong>：</p>
+<ol>
+<li>Spin Locks能够在中断处理函数中使用，但是这样会造成系统调度延迟。<br>2 .使用Spin Locks时，必须保证占用锁的时间必须要短，否则会造成系统性能的下降。如果需要长时间的占用锁，并且当前的代码执行线（不知道这样翻译对不对，英文是thread of execution）能够安全的被挂起到睡眠状态的话，可以选择使用信号量。</li>
+<li>在中断中获取Spin Locks之前必须先关闭该CPU的中断，否则有可能会造成递归的获取Spin Lock，从而造成系统死锁。</li>
+<li>正如第3条中看到的，spin lock不能递归的获取。递归的获取spin lock会造成系统的死锁。</li>
+<li>由于Spin Lock不能递归的占用，因此在所有可能发生抢占的场合，需要谨慎的处理，例如和Bottom Halves的相关操作：<ol>
+<li>由于Bottom Half会抢占进程上下文的执行。因此，如果数据在Bottom Half的进程上下文之间共享的话，则必须使用锁并且禁止Bottom Halves。</li>
+<li>由于中断服务函数会抢占Bottom Half，因此如果数据在中断处理函数和bottom half之间共享的话，必须要获得锁并且禁止中断。</li>
+<li>由于两个类型相同的tasklet永远不会同时运行。因此在相同类型的tasklet间共享的数据不需要保护。</li>
+<li>如果在两个不同类型的tasklet间共享数据的话，必须在访问bottom half中数据之前获得锁。由于在同一CPU上的tasklet不会互相抢占，因此并不需要禁止bottom halves。</li>
+<li>不管是不是相同类型的softirq，只要他们之间有数据的共享就必须被锁保护。由于即使是两个相同类型的softirq也可能在不同的CPU上同时运行。同一个CPU上的softirq并不会互相抢占，因此不需要禁止bottom halves。</li>
+</ol>
+</li>
+</ol>
+<p><strong>有关Semaphore需要知道以下的几点</strong>：</p>
+<ol>
+<li>Semaphore会导致调用它的代码执行线被挂起到睡眠队列。因此在任何不允许发生睡眠的情景下都不能使用Semaphore。</li>
+<li>如果占用Semaphore的时间很短，可以考虑使用Spin Lock，因为Semaphore会导致任务被挂起，从而增加了两次调度的开销。但是需要注意的是，如果是在单CPU机器上使用Spin Lock需要格外的小心，因为Spin的特性可能会导致系统陷入永远等待的状态。</li>
+<li>Semaphore不会禁止内核的抢占，因此占用Semaphore的任务可以被其他的任务所抢占。这也就意味着，使用Semaphore不会造成系统调度的延迟。</li>
+<li>占用了Semaphore的同时不能再占用Spin Lock，因为在等待Semaphore的同时可能会睡眠，而持有Spin Lock时这是不允许的。</li>
+</ol>
+<h1 id="Semaphores-VS-Mutexes"><a href="#Semaphores-VS-Mutexes" class="headerlink" title="Semaphores VS Mutexes"></a>Semaphores VS Mutexes</h1><p>尽量使用Mutex而非Semaphore，除非针对Mutex的限制不能满足时再考虑Semaphore。</p>
+<p>具体的限制如下：</p>
+<ul>
+<li>只能由一个任务获取Mutex，即usage count永远是1。</li>
+<li>不管是谁获取了Mutex，它必须在使用完后解锁Mutex，即不能在一个上下文中获取Mutex，而在另一个上下文中解锁Mutex。这意味着Mutex不能用在类似内核－用户空间的同步上。</li>
+<li>Mutex的加锁和解锁是不允许递归的，即不能递归的持有同一个锁，也不能去解锁一个已经被解锁的锁。</li>
+<li>进程在获得互斥体后不能退出。</li>
+<li>Mutex不能在中断处理函数和Bottom Halves中使用，哪怕是mutex_trylock()函数也不行。</li>
+<li>Mutex只能通过官方的API来管理。</li>
+</ul>
+<h1 id="Spin-Lock-VS-Mutexes"><a href="#Spin-Lock-VS-Mutexes" class="headerlink" title="Spin Lock VS Mutexes"></a>Spin Lock VS Mutexes</h1><table>
+<thead>
+<tr>
+<th style="text-align:left">Requirement</th>
+<th style="text-align:left">Recommended Lock</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Low overhead locking</td>
+<td style="text-align:left">Spin lock is preferred.</td>
+</tr>
+<tr>
+<td style="text-align:left">Short lock hold time</td>
+<td style="text-align:left">Spin lock is preferred.</td>
+</tr>
+<tr>
+<td style="text-align:left">Long lock hold time</td>
+<td style="text-align:left">Mutex is preferred.</td>
+</tr>
+<tr>
+<td style="text-align:left">Need to lock from interrupt context</td>
+<td style="text-align:left">Spin lock is required.</td>
+</tr>
+<tr>
+<td style="text-align:left">Need to sleep while holding lock</td>
+<td style="text-align:left">Mutex is required.</td>
+</tr>
+</tbody>
+</table>
+<h1 id="Completion-Variables-VS-Reader-Writer-Spin-Locks-Semaphores"><a href="#Completion-Variables-VS-Reader-Writer-Spin-Locks-Semaphores" class="headerlink" title="Completion Variables VS Reader-Writer Spin Locks/Semaphores"></a>Completion Variables VS Reader-Writer Spin Locks/Semaphores</h1><p>这两个的区别主要在于，Reader-Writer Spin Locks和Reader-Writer Semaphores更加的偏向于Reader，也就是说，如果Reader非常频繁的情形下，Writer可能会被处于饥饿状态。而Completion Variables会更偏向于Writer，只要有Writer时，Reader就会被无限的循环。</p>
+<h1 id="禁用抢占"><a href="#禁用抢占" class="headerlink" title="禁用抢占"></a>禁用抢占</h1><p>加入我们的代码需要处理per-processor data，这个时候使用spin lock就显得有些多余了，因为这些数据本身就只能被单个的CPU访问，但是如果不使用spin lock，这些数据又可能因为抢占机制而被同一CPU上的其他进程所并发的访问。这个时候我们就需要禁止抢占来保护这些数据的完整性了。</p>
+<p>使用如下的代码来禁用和启用内核抢占：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">preempt_disable();</div><div class="line"><span class="comment">/* preemption is disabled ... */</span></div><div class="line">preempt_enable();</div></pre></td></tr></table></figure>
+<p>这个函数是可以嵌套的，但是调用了多少次<code>preempt_disable()</code>就需要调用相同次数的<code>preempt_enable()</code>。</p>
+<h1 id="顺序和屏障"><a href="#顺序和屏障" class="headerlink" title="顺序和屏障"></a>顺序和屏障</h1><p>有时候我们必须保证对内存操作的顺序性，尤其在多CPU系统中，对内存的读写必须按照代码启动他们的顺序而执行。由于CPU和编译器都会为了某些性能的原因对代码顺序进行调整，因此如何保证顺序是一个重要的问题。</p>
+<p>对于如下的代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">a = <span class="number">1</span>;</div><div class="line">b = <span class="number">2</span>;</div></pre></td></tr></table></figure>
+<p>无论编译器或者处理器可能都会存在打乱这两个语句顺序而执行的情形，因为在它们看来，这两个语句是不存在关系的。</p>
+<p><code>rmb()</code>函数提供了一个读的内存屏障。它能够保证在此之前的的读不会被乱序到它之后。<br>同样的<code>wmb()</code>提供了相似的写内存屏障，即任何在它之前的写不会被乱序到它之后。<br><code>mb()</code>函数对读和写同时提供了内存屏障。<br><code>rmb()</code>的一个变种版本函数<code>read_barrier_depends()</code>也提供了对于读的内存屏障。但是不同的是，在这个屏障之前的所有的读操作都能够被保证完成先于那些位于屏障之后的，依赖于屏障之前的读操作。换句话说，这个函数也是针对读操作的内存屏障，但是仅仅针对那些有前后依赖关系的读操作。</p>
+<p>除了以上的函数之外，还存在着<code>smp_rmb()</code>，<code>smp_wmb()</code>，<code>smp_mb()</code>，and <code>smp_read_barrier_depends()</code>这些能够优化的宏。在SMP结构的内核中，这些宏是普通的内存屏障，在单CPU结构的机器上，这些宏被优化为编译器屏障。</p>
+<p><code>barrier()</code>函数能够防止编译器对跨越该函数的读操作和写操作进行优化。之前介绍的内存屏障也是编译器屏障，但是此处的<code>barrier()</code>更加的轻量和快速。</p>
+<p>全部的屏障函数见下表：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Barrier</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">rmb()</td>
+<td style="text-align:left">Prevents loads from being reordered across the barrier</td>
+</tr>
+<tr>
+<td style="text-align:left">read_barrier_depends()</td>
+<td style="text-align:left">Prevents data-dependent loads from being re- ordered across the barrier</td>
+</tr>
+<tr>
+<td style="text-align:left">wmb()</td>
+<td style="text-align:left">Prevents stores from being reordered across the barrier</td>
+</tr>
+<tr>
+<td style="text-align:left">mb()</td>
+<td style="text-align:left">Prevents load or stores from being reordered across the barrier</td>
+</tr>
+<tr>
+<td style="text-align:left">smp_rmb()</td>
+<td style="text-align:left">Provides an rmb() on SMP, and on UP provides a barrier()</td>
+</tr>
+<tr>
+<td style="text-align:left">smp_read_barrier_depends()</td>
+<td style="text-align:left">Provides a readbarrierdepends() on SMP, and provides a barrier() on UP</td>
+</tr>
+<tr>
+<td style="text-align:left">smp_wmb()</td>
+<td style="text-align:left">Provides a wmb() on SMP, and provides a barrier() on UP</td>
+</tr>
+<tr>
+<td style="text-align:left">smp_mb()</td>
+<td style="text-align:left">Provides an mb() on SMP, and provides a barrier() on UP</td>
+</tr>
+<tr>
+<td style="text-align:left">barrier()</td>
+<td style="text-align:left">Prevents the compiler from optimizing stores or loads across the barrier</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="¶-The-end"><a href="#¶-The-end" class="headerlink" title="¶ The end"></a>¶ The end</h3><p>Share Link:  <a href="http://d0u9.win/posts/3752583645.html">http://d0u9.win/posts/3752583645.html</a> </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+            <a href="/tags/Linux-Kernel/" rel="tag"># Linux Kernel</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/3699999470.html" rel="next" title="内核同步方法简介">
+                <i class="fa fa-chevron-left"></i> 内核同步方法简介
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/2932705170.html" rel="prev" title="Vim Solarized主题配色小结">
+                Vim Solarized主题配色小结 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <!-- avatar previously here -->
+              <p class="site-author-name" itemprop="name">Douglas Su</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">75</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">34</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/d0u9" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://twitter.com/D0u9Su" target="_blank" title="Twitter">
+                    
+                      <i class="fa fa-fw fa-twitter"></i>Twitter</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.facebook.com/profile.php?id=100010131587938" target="_blank" title="FB Page">
+                    
+                      <i class="fa fa-fw fa-facebook"></i>FB Page</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://stackoverflow.com/users/3824053/douglas-su" target="_blank" title="StackOverflow">
+                    
+                      <i class="fa fa-fw fa-stack-overflow"></i>StackOverflow</a>
+                </span>
+                <br />
+              
+            
+          </div>
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Semaphores-VS-Spin-Locks"><span class="nav-number">1.</span> <span class="nav-text">Semaphores VS Spin Locks</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Semaphores-VS-Mutexes"><span class="nav-number">2.</span> <span class="nav-text">Semaphores VS Mutexes</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Spin-Lock-VS-Mutexes"><span class="nav-number">3.</span> <span class="nav-text">Spin Lock VS Mutexes</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Completion-Variables-VS-Reader-Writer-Spin-Locks-Semaphores"><span class="nav-number">4.</span> <span class="nav-text">Completion Variables VS Reader-Writer Spin Locks/Semaphores</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#禁用抢占"><span class="nav-number">5.</span> <span class="nav-text">禁用抢占</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#顺序和屏障"><span class="nav-number">6.</span> <span class="nav-text">顺序和屏障</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#¶-The-end"><span class="nav-number">6.0.1.</span> <span class="nav-text">¶ The end</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Douglas Su</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+  <link rel="stylesheet" media="all" href="/lib/Han/dist/han.min.css?v=3.3">
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/icons/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/icons/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/icons/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/icons/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Linux,Linux Kernel,Linux Driver," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="在Linux驱动开发–简单睡眠中，我们介绍了如何将锁请求资源尚未准备好的进程转入睡眠状态，以及在条件满足时唤醒。但是由于我们在处理这类问题时往往需要面对更加复杂的情形，这时，简单睡眠就不能满足我们的需要了。为此在这里我们介绍高级睡眠模式。 本文中的示例和Linux驱动开发–简单睡眠的示例基本相同，除了在处理睡眠时我们使用了更加底层的方式。 除此之外，本文中，我们还需要特别介绍lost wake-u">
+<meta name="keywords" content="Linux,Linux Kernel,Linux Driver">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux驱动开发--高级睡眠">
+<meta property="og:url" content="http://d0u9.win/posts/1381858328.html">
+<meta property="og:site_name" content="d0u9">
+<meta property="og:description" content="在Linux驱动开发–简单睡眠中，我们介绍了如何将锁请求资源尚未准备好的进程转入睡眠状态，以及在条件满足时唤醒。但是由于我们在处理这类问题时往往需要面对更加复杂的情形，这时，简单睡眠就不能满足我们的需要了。为此在这里我们介绍高级睡眠模式。 本文中的示例和Linux驱动开发–简单睡眠的示例基本相同，除了在处理睡眠时我们使用了更加底层的方式。 除此之外，本文中，我们还需要特别介绍lost wake-u">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2017-11-07T14:18:16.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux驱动开发--高级睡眠">
+<meta name="twitter:description" content="在Linux驱动开发–简单睡眠中，我们介绍了如何将锁请求资源尚未准备好的进程转入睡眠状态，以及在条件满足时唤醒。但是由于我们在处理这类问题时往往需要面对更加复杂的情形，这时，简单睡眠就不能满足我们的需要了。为此在这里我们介绍高级睡眠模式。 本文中的示例和Linux驱动开发–简单睡眠的示例基本相同，除了在处理睡眠时我们使用了更加底层的方式。 除此之外，本文中，我们还需要特别介绍lost wake-u">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://d0u9.win/posts/1381858328.html"/>
+
+
+
+
+
+  <title>Linux驱动开发--高级睡眠 | d0u9</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    
+      <img class="site-author-image" itemprop="image"
+        src="/images/avatar.png"
+        alt="Douglas Su" />
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">d0u9</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">For thine is the kingdom, the power, and the glory ...</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://d0u9.win/posts/1381858328.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Douglas Su">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="d0u9">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Linux驱动开发--高级睡眠</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-08-26T10:54:00+08:00">
+                2015-08-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/" itemprop="url" rel="index">
+                    <span itemprop="name">Science & Technology</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/Linux/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body han-init-context" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>在<a href="../../posts/1614808257.html">Linux驱动开发–简单睡眠</a>中，我们介绍了如何将锁请求资源尚未准备好的进程转入睡眠状态，以及在条件满足时唤醒。但是由于我们在处理这类问题时往往需要面对更加复杂的情形，这时，简单睡眠就不能满足我们的需要了。为此在这里我们介绍高级睡眠模式。</p>
+<p>本文中的示例和<a href="../posts/16844.html">Linux驱动开发–简单睡眠</a>的示例基本相同，除了在处理睡眠时我们使用了更加底层的方式。</p>
+<p>除此之外，本文中，我们还需要特别介绍<strong>lost wake-up problem</strong>。因为我在这里浪费了较多的时间。</p>
+<a id="more"></a>
+<h1 id="进程睡眠"><a href="#进程睡眠" class="headerlink" title="进程睡眠"></a>进程睡眠</h1><p>我们首先需要了解一个进程是怎么睡眠的，这个过程是怎么处理的。</p>
+<p>进程可以具有<code>TASK_RUNNING</code>，<code>TASK_INTERRUPTIBLE</code>，<code>TASK_UNINTERRUPTIBLE</code>三种状态。当一个进程不具有<code>TASK_RUNNING</code>状态时，它不能被内核调度器调度到CPU上运行。更具体的讲，内核维护了一个所谓的<code>run queue</code>链表，链表中的每个节点都是一个具有<code>TASK_RUNNING</code>状态的进程。当一个进程的时间片被用完（或者其他情形）时，调度器会根据调度策略从<code>run queue</code>中选出一个认为最合适的来使用CPU。</p>
+<p>除了当前占用CPU的进程（假设是进程A）时间片被用完时会触发调度之外，进程A也可以自愿的请求进程调度，让调度器选择下一个可以执行的进程。被选择的下一个进程可以是进程A也可以是其他的进程，这完全取决于调度算法和当前可运行进程的数量。进程自愿的请求调度通过调用<code>schedul()</code>函数来完成。</p>
+<h1 id="高级睡眠"><a href="#高级睡眠" class="headerlink" title="高级睡眠"></a>高级睡眠</h1><h2 id="用到的函数"><a href="#用到的函数" class="headerlink" title="用到的函数"></a>用到的函数</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment"> * 检查进程是否可以休眠，并将进程状态设置为state</span></div><div class="line"><span class="comment"> * @q: 等待队列的头</span></div><div class="line"><span class="comment"> * @wait: 将要插入的等待描述符</span></div><div class="line"><span class="comment"> * @state: 将进程修改为state状态</span></div><div class="line"><span class="comment"> */</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">prepare_to_wait</span><span class="params">(<span class="keyword">wait_queue_head_t</span> *q, <span class="keyword">wait_queue_t</span> *wait, <span class="keyword">int</span> state)</span></span></div><div class="line"><span class="function"></span></div><div class="line"><span class="function"><span class="comment">/**</span></span></div><div class="line"><span class="function"><span class="comment"> * 请求调度器选择下一个可以运行的进程</span></span></div><div class="line"><span class="function"><span class="comment"> */</span></span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">schedule</span><span class="params">(<span class="keyword">void</span>)</span></span></div><div class="line"><span class="function"></span></div><div class="line"><span class="function"><span class="comment">/**</span></span></div><div class="line"><span class="function"><span class="comment"> * 修改进程状态为TASK_RUNNING，同时将该进程移出等待队列</span></span></div><div class="line"><span class="function"><span class="comment"> * @q: 等待队列的队列头</span></span></div><div class="line"><span class="function"><span class="comment"> * @wait: 当前的等待队列描述符</span></span></div><div class="line"><span class="function"><span class="comment"> */</span></span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">finish_wait</span><span class="params">(<span class="keyword">wait_queue_head_t</span> *q, <span class="keyword">wait_queue_t</span> *wait)</span></span></div></pre></td></tr></table></figure>
+<h2 id="高级休眠实例"><a href="#高级休眠实例" class="headerlink" title="高级休眠实例"></a>高级休眠实例</h2><p>我们以<code>pipe_write()</code>为例讲解高级睡眠。在<code>pipe_write()</code>中有如下一段：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">while</span> (pipe-&gt;valid_elements == MAX_BUFF_SIZE) &#123;</div><div class="line">    DEFINE_WAIT(wait);</div><div class="line"></div><div class="line">    mutex_unlock(&amp;pipe-&gt;mutex);</div><div class="line">    <span class="keyword">if</span> (filp-&gt;f_flags &amp; O_NONBLOCK)</div><div class="line">        <span class="keyword">return</span> -EAGAIN;</div><div class="line"></div><div class="line">    prepare_to_wait(&amp;pipe-&gt;write_q, &amp;wait, TASK_INTERRUPTIBLE);</div><div class="line">    <span class="keyword">if</span> (pipe-&gt;valid_elements == MAX_BUFF_SIZE)</div><div class="line">        schedule();</div><div class="line">    finish_wait(&amp;pipe-&gt;write_q, &amp;wait);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (signal_pending(current))</div><div class="line">        <span class="keyword">return</span> -ERESTARTSYS;</div><div class="line">    <span class="keyword">if</span> (mutex_lock_interruptible(&amp;pipe-&gt;mutex))</div><div class="line">        <span class="keyword">return</span> -ERESTARTSYS;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>首先我们需要一个循环用来检查我们等待的状态是否满足，也就是第1行的<code>while</code>循环。如果睡眠的条件在此处不满足，则直接跳过，执行后面的代码。如果睡眠条件满足，进入循环内部。需要注意的是，在执行这段代码之前我们已经获得了<code>pipe-&gt;mutex</code>。</p>
+<p>在循环内部我们需要准备将当前进行写操作的进程转入睡眠状态。第一步是定义等待描述符号。在这里我们使用<code>DEFINE_WAIT(wait)</code>来静态的定义等待描述符。如果需要动态的定义等待描述符可以使用如下的代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">wait_queue_t</span> wait;</div><div class="line">init_wait(&amp;wait);</div></pre></td></tr></table></figure>
+<p>此时我们需要释放已获得的锁，避免睡眠时拥有锁造成读取操作无法完成从而造成死锁。</p>
+<p>在第8行，我们使用<code>prepare_to_wait()</code>将当前进程的加入等待队列中，同时将其状态变为<code>TASK_INTERRUPTIBLE</code>。需要明白的是，我们这时还没有放弃CPU的占用，但已经被加入了一个睡眠等待队列中。</p>
+<p>之后我们在次检查唤醒状态是否满足，如果这时状态满足的话（可能是其他CPU上的进程完成了任务导致任务满足），则直接跳过<code>schedule()</code>执行<code>finish_wait()</code>。<code>finish_wait()</code>会讲进程的状态重新修改为<code>TASK_RUNNING</code>并且将其移出等待队列。如果条件不满足的话，则会执行<code>schedule()</code>，主动放弃CPU。直到被其他的进程唤醒。</p>
+<h2 id="lost-wake-up问题"><a href="#lost-wake-up问题" class="headerlink" title="lost wake-up问题"></a>lost wake-up问题</h2><p>我们将上述代码改为如下的情形：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">while</span> (pipe-&gt;valid_elements == MAX_BUFF_SIZE) &#123;</div><div class="line">    DEFINE_WAIT(wait);</div><div class="line"></div><div class="line">    mutex_unlock(&amp;pipe-&gt;mutex);</div><div class="line">    <span class="keyword">if</span> (filp-&gt;f_flags &amp; O_NONBLOCK)</div><div class="line">        <span class="keyword">return</span> -EAGAIN;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (pipe-&gt;valid_elements == MAX_BUFF_SIZE) &#123;</div><div class="line">        prepare_to_wait(&amp;pipe-&gt;write_q, &amp;wait, TASK_INTERRUPTIBLE);</div><div class="line">        schedule();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    finish_wait(&amp;pipe-&gt;write_q, &amp;wait);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (signal_pending(current))</div><div class="line">        <span class="keyword">return</span> -ERESTARTSYS;</div><div class="line">    <span class="keyword">if</span> (mutex_lock_interruptible(&amp;pipe-&gt;mutex))</div><div class="line">        <span class="keyword">return</span> -ERESTARTSYS;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>注意8、9行的改动。在这种情况下，如果有读取进程将缓冲区数据取走的时间正好发生在8行<code>if()</code>语句之后的话，那么我们的<code>write()</code>进程将无法感知到，从而继续进入睡眠状态。这也就是所谓的<strong>lost wake-up</strong>问题。</p>
+<p>为什么我们的代码能避免<strong>lost wake-up</strong>问题呢？因为<code>prepare_to_wait()</code>函数会将当前的进程加入到等待队列中。此时进程不管何时都能被其他进程唤醒。</p>
+<h1 id="完整代码"><a href="#完整代码" class="headerlink" title="完整代码"></a>完整代码</h1><p>完整的代码可以在我的github中找到：<a href="https://github.com/d0u9/Linux-Device-Driver/tree/master/09_pipe_advanced_sleep" target="_blank" rel="external">https://github.com/d0u9/Linux-Device-Driver/tree/master/09_pipe_advanced_sleep</a></p>
+<hr>
+<h3 id="¶-The-end"><a href="#¶-The-end" class="headerlink" title="¶ The end"></a>¶ The end</h3><p>Share Link:  <a href="http://d0u9.win/posts/1381858328.html">http://d0u9.win/posts/1381858328.html</a> </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+            <a href="/tags/Linux-Kernel/" rel="tag"># Linux Kernel</a>
+          
+            <a href="/tags/Linux-Driver/" rel="tag"># Linux Driver</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/3056147452.html" rel="next" title="端午节逛北京">
+                <i class="fa fa-chevron-left"></i> 端午节逛北京
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/1447766914.html" rel="prev" title="Linux驱动开发--内核内存管理">
+                Linux驱动开发--内核内存管理 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <!-- avatar previously here -->
+              <p class="site-author-name" itemprop="name">Douglas Su</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">75</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">34</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/d0u9" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://twitter.com/D0u9Su" target="_blank" title="Twitter">
+                    
+                      <i class="fa fa-fw fa-twitter"></i>Twitter</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.facebook.com/profile.php?id=100010131587938" target="_blank" title="FB Page">
+                    
+                      <i class="fa fa-fw fa-facebook"></i>FB Page</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://stackoverflow.com/users/3824053/douglas-su" target="_blank" title="StackOverflow">
+                    
+                      <i class="fa fa-fw fa-stack-overflow"></i>StackOverflow</a>
+                </span>
+                <br />
+              
+            
+          </div>
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#进程睡眠"><span class="nav-number">1.</span> <span class="nav-text">进程睡眠</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#高级睡眠"><span class="nav-number">2.</span> <span class="nav-text">高级睡眠</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#用到的函数"><span class="nav-number">2.1.</span> <span class="nav-text">用到的函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#高级休眠实例"><span class="nav-number">2.2.</span> <span class="nav-text">高级休眠实例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#lost-wake-up问题"><span class="nav-number">2.3.</span> <span class="nav-text">lost wake-up问题</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#完整代码"><span class="nav-number">3.</span> <span class="nav-text">完整代码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#¶-The-end"><span class="nav-number">3.0.1.</span> <span class="nav-text">¶ The end</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Douglas Su</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

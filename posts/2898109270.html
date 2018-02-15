@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+  <link rel="stylesheet" media="all" href="/lib/Han/dist/han.min.css?v=3.3">
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/icons/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/icons/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/icons/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/icons/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Tools,Vim,Vim Plugin,Neovim," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="由于各种强迫症发作，最近又尝试了一把neovim。说实话，按照我这个量级的使用，neovim的那些个牛逼特性根本没体会出来。。。不过抱着既然是新的，那应该就会不错的心态尝试了一下，发现还好，最后就索性彻底的折腾了一下，顺便尝试着更换了一些插件。 本文主要是想做一个合集，用来介绍我的Neovim的配置，插件和心得。算是一种记录吧，免得以后给别人装的时候忘记了各种误区。">
+<meta name="keywords" content="Tools,Vim,Vim Plugin,Neovim">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Neovim配置与插件说明">
+<meta property="og:url" content="http://d0u9.win/posts/2898109270.html">
+<meta property="og:site_name" content="d0u9">
+<meta property="og:description" content="由于各种强迫症发作，最近又尝试了一把neovim。说实话，按照我这个量级的使用，neovim的那些个牛逼特性根本没体会出来。。。不过抱着既然是新的，那应该就会不错的心态尝试了一下，发现还好，最后就索性彻底的折腾了一下，顺便尝试着更换了一些插件。 本文主要是想做一个合集，用来介绍我的Neovim的配置，插件和心得。算是一种记录吧，免得以后给别人装的时候忘记了各种误区。">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2017-11-07T14:57:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Neovim配置与插件说明">
+<meta name="twitter:description" content="由于各种强迫症发作，最近又尝试了一把neovim。说实话，按照我这个量级的使用，neovim的那些个牛逼特性根本没体会出来。。。不过抱着既然是新的，那应该就会不错的心态尝试了一下，发现还好，最后就索性彻底的折腾了一下，顺便尝试着更换了一些插件。 本文主要是想做一个合集，用来介绍我的Neovim的配置，插件和心得。算是一种记录吧，免得以后给别人装的时候忘记了各种误区。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://d0u9.win/posts/2898109270.html"/>
+
+
+
+
+
+  <title>Neovim配置与插件说明 | d0u9</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    
+      <img class="site-author-image" itemprop="image"
+        src="/images/avatar.png"
+        alt="Douglas Su" />
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">d0u9</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">For thine is the kingdom, the power, and the glory ...</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://d0u9.win/posts/2898109270.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Douglas Su">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="d0u9">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Neovim配置与插件说明</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-11-28T14:05:00+08:00">
+                2015-11-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/" itemprop="url" rel="index">
+                    <span itemprop="name">Science & Technology</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/Tools/" itemprop="url" rel="index">
+                    <span itemprop="name">Tools</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body han-init-context" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>由于各种强迫症发作，最近又尝试了一把neovim。说实话，按照我这个量级的使用，neovim的那些个牛逼特性根本没体会出来。。。不过抱着既然是新的，那应该就会不错的心态尝试了一下，发现还好，最后就索性彻底的折腾了一下，顺便尝试着更换了一些插件。</p>
+<p>本文主要是想做一个合集，用来介绍我的Neovim的配置，插件和心得。算是一种记录吧，免得以后给别人装的时候忘记了各种误区。</p>
+<a id="more"></a>
+<h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ul>
+<li><a href="#Neovim介绍与安装">Neovim介绍与安装</a><ul>
+<li><a href="#Neovim安装">Neovim安装</a></li>
+<li><a href="#Neovim的一些改变">Neovim的一些改变</a></li>
+<li><a href="#Neovim的配置于目录说明">Neovim的配置于目录说明</a></li>
+<li><a href="#我的插件与配置">我的插件与配置</a></li>
+</ul>
+</li>
+<li><a href="#使用技巧">使用技巧</a><ul>
+<li><a href="#好用却不常用的快捷键">好用却不常用的快捷键</a></li>
+<li><a href="#我的按键绑定">我的按键绑定</a></li>
+<li><a href="#一些有用的命令">一些有用的命令</a></li>
+</ul>
+</li>
+<li><a href="#Troubleshootings">Troubleshootings</a><ul>
+<li><a href="#与系统剪切板的对接">与系统剪切板的对接</a></li>
+<li><a href="#Youcompleteme无效">Youcompleteme无效</a></li>
+<li><a href="#nvim-ipy无效">nvim-ipy无效</a></li>
+<li><a href="#Ctrl-H-快捷键在OSX下无效">Ctrl-H 快捷键在OSX下无效</a></li>
+</ul>
+</li>
+<li>插件介绍<ul>
+<li><a href="../../posts/2679791153.html">Fugitive</a></li>
+<li><a href="../../posts/2697259906.html#tagbar">tagbar</a></li>
+<li><a href="../../posts/2697259906.html#Undotree">Undotree</a></li>
+<li><a href="../../posts/2697259906.html#ListToggle">ListToggle</a></li>
+<li><a href="../../posts/2697259906.html#Dash">Dash</a></li>
+<li><a href="../../posts/953412640.html#CtrlP">CtrlP</a></li>
+<li><a href="../../posts/953412640.html#vim-buffergator">vim-buffergator</a></li>
+<li><a href="../../posts/953412640.html#ag-vim">Ag.vim</a></li>
+<li><a href="../../posts/953412640.html#bufferline">Bufferline</a></li>
+</ul>
+</li>
+</ul>
+<hr>
+<h1 id="Neovim介绍与安装"><a href="#Neovim介绍与安装" class="headerlink" title="Neovim介绍与安装"></a>Neovim介绍与安装</h1><h2 id="Neovim安装"><a href="#Neovim安装" class="headerlink" title="Neovim安装"></a>Neovim安装</h2><blockquote>
+<p>参考：<a href="https://github.com/neovim/neovim/wiki/Installing-Neovim" target="_blank" rel="external">https://github.com/neovim/neovim/wiki/Installing-Neovim</a></p>
+</blockquote>
+<p>在这里主要说一下Mac OS系统下的安装：</p>
+<ul>
+<li>安装Homebrew：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ruby -e <span class="string">"<span class="variable">$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)</span>"</span></div></pre></td></tr></table></figure>
+<ul>
+<li>安装Neovim：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">brew install neovim/neovim/neovim</div></pre></td></tr></table></figure>
+<h2 id="Neovim的一些改变"><a href="#Neovim的一些改变" class="headerlink" title="Neovim的一些改变"></a>Neovim的一些改变</h2><blockquote>
+<p>参考：<a href="https://neovim.io/doc/user/vim_diff.html#vim-differences" target="_blank" rel="external">https://neovim.io/doc/user/vim_diff.html#vim-differences</a></p>
+</blockquote>
+<p>相对于Vim来说nvim的主要变化体现在了整个架构的改变，大量的采用了异步处理。当然这一 点在平时的使用中是无法体会出来的。除此之外，nvim还移除了很多Vim支持的老旧特性，重构了插件系统。</p>
+<p>对于插件来说，大部分的插件可以直接在nvim上使用而不需要修改。不过也有一些插件是不行的，这个需要自己根据使用情况来判断。</p>
+<p>具体的可以看参考文献。</p>
+<h2 id="Neovim的配置于目录说明"><a href="#Neovim的配置于目录说明" class="headerlink" title="Neovim的配置于目录说明"></a>Neovim的配置于目录说明</h2><p>Vim的配置文件是<code>~/.vimrc</code>，插件目录是<code>~/.vim/</code>，而nvim的配置文件结构有些类似于emacs。</p>
+<p>nvim的使用的<a href="http://standards.freedesktop.org/basedir-spec/basedir-spec-0.6.html#introduction" target="_blank" rel="external">XDG</a>标准，简单的说，根配置目录位于<code>~/.config/nvim/</code>中。配置文件是<code>~/.config/nvim/init.vim</code>，插件目录等依据所用的插件管理器而会不同。</p>
+<h2 id="我的插件与配置"><a href="#我的插件与配置" class="headerlink" title="我的插件与配置"></a>我的插件与配置</h2><h3 id="插件列表与说明"><a href="#插件列表与说明" class="headerlink" title="插件列表与说明"></a>插件列表与说明</h3><ul>
+<li>YouCompleteMe</li>
+</ul>
+<blockquote>
+<p>主页：<a href="https://github.com/Valloric/YouCompleteMe" target="_blank" rel="external">https://github.com/Valloric/YouCompleteMe</a></p>
+</blockquote>
+<p>相当牛逼的一款插件，各种语言补全用的。</p>
+<ul>
+<li>vim-airline</li>
+</ul>
+<blockquote>
+<p>主页：<a href="https://github.com/bling/vim-airline" target="_blank" rel="external">https://github.com/bling/vim-airline</a></p>
+</blockquote>
+<p>增强你的vim状态栏。</p>
+<ul>
+<li>nerdcommenter</li>
+</ul>
+<blockquote>
+<p>主页：<a href="https://github.com/scrooloose/nerdcommenter" target="_blank" rel="external">https://github.com/scrooloose/nerdcommenter</a></p>
+</blockquote>
+<p>一个用来注释各种东西的插件。</p>
+<ul>
+<li>vim-gitgutter</li>
+</ul>
+<blockquote>
+<p>主页：<a href="https://github.com/airblade/vim-gitgutter" target="_blank" rel="external">https://github.com/airblade/vim-gitgutter</a></p>
+</blockquote>
+<p>在你的文件旁边显示git diff的到的修改状态。</p>
+<ul>
+<li>tagbar</li>
+</ul>
+<blockquote>
+<p>主页：<a href="https://github.com/majutsushi/tagbar" target="_blank" rel="external">https://github.com/majutsushi/tagbar</a></p>
+</blockquote>
+<p>一个用来帮你显示当前文件的类，结构，方法 balabala…</p>
+<ul>
+<li>ctrlp.vim</li>
+</ul>
+<blockquote>
+<p>主页：<a href="https://github.com/kien/ctrlp.vim" target="_blank" rel="external">https://github.com/kien/ctrlp.vim</a></p>
+</blockquote>
+<p>用来在多个buffer切换，管理最近打开的文件，管理当前文件夹下的文件。最关键的是其支持模糊匹配。</p>
+<ul>
+<li>vim-buffergator</li>
+</ul>
+<blockquote>
+<p>主页：<a href="https://github.com/jeetsukumaran/vim-buffergator" target="_blank" rel="external">https://github.com/jeetsukumaran/vim-buffergator</a></p>
+</blockquote>
+<p>管理vim的buffer。</p>
+<ul>
+<li>vim-bufferline</li>
+</ul>
+<blockquote>
+<p>主页：<a href="https://github.com/bling/vim-bufferline" target="_blank" rel="external">https://github.com/bling/vim-bufferline</a></p>
+</blockquote>
+<p>在你的状态栏上显示当前vim的buffer状态。</p>
+<ul>
+<li>nvim-ipy</li>
+</ul>
+<blockquote>
+<p>主页：<a href="https://github.com/bfredl/nvim-ipy" target="_blank" rel="external">https://github.com/bfredl/nvim-ipy</a>(</p>
+</blockquote>
+<p>这个插件可以让你的vim变成一个python的IDE，依托IPython，可以方便的执行当前编辑的行，或者执行整个文件。</p>
+<h3 id="下载配置文件"><a href="#下载配置文件" class="headerlink" title="下载配置文件"></a>下载配置文件</h3><ul>
+<li>我的vim配置可以在我的github上找到<a href="https://github.com/d0u9/.dot" target="_blank" rel="external">https://github.com/d0u9/.dot</a>.</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">git <span class="built_in">clone</span> https://github.com/d0u9/.dot ~/.dot</div><div class="line">mkdir -p ~/.config</div></pre></td></tr></table></figure>
+<ul>
+<li>如果你对.dot文件夹里的对其他的内容<em>没有</em>兴趣的话再执行下面的命令：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">cp -r ~/.dot/nvim ~/.config/</div></pre></td></tr></table></figure>
+<p>否则，执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ln -s ~/.dot/nvim ~/.config/nvim</div></pre></td></tr></table></figure>
+<h3 id="安装插件管理器vim-plug"><a href="#安装插件管理器vim-plug" class="headerlink" title="安装插件管理器vim-plug"></a>安装插件管理器<code>vim-plug</code></h3><p>详细见这里<a href="http://www.d0u9.xyz/geng-wei-qiang-de-vimcha-jian-guan-li-qi-vim-plug/" target="_blank" rel="external">http://www.d0u9.xyz/geng-wei-qiang-de-vimcha-jian-guan-li-qi-vim-plug/</a></p>
+<h3 id="安装插件"><a href="#安装插件" class="headerlink" title="安装插件"></a>安装插件</h3><ul>
+<li>首先需要安装nvim的python支持，确保你已经安装<code>pip2</code>。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">pip2 install neovim</div></pre></td></tr></table></figure>
+<ul>
+<li>打开nvim，执行：</li>
+</ul>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">:PlugInstall</div></pre></td></tr></table></figure>
+<p>如果安装完插件后发现有部分插件不能使用，请参考<a href="#Troubleshootings">Troubleshootings</a>。</p>
+<ul>
+<li>使用<code>ag</code>(<a href="https://github.com/ggreer/the_silver_searcher" target="_blank" rel="external">the_silver_searcher</a>)作为CtrlP的默认搜索工具，ag将会大大加速CtrlP插件的打开速度。如果你没有兴趣的话，请删除<code>.config/nvim/init.vim</code>中的<code>Speed up CtrlP</code>部分。</li>
+</ul>
+<blockquote>
+<p>参考：<a href="http://stackoverflow.com/questions/21346068/slow-performance-on-ctrlp-it-doesnt-work-to-ignore-some-folders" target="_blank" rel="external">http://stackoverflow.com/questions/21346068/slow-performance-on-ctrlp-it-doesnt-work-to-ignore-some-folders</a></p>
+</blockquote>
+<p>安装Ag，这里以OSX举例，其他系统的安装方法请戳<a href="https://github.com/ggreer/the_silver_searcher#installing" target="_blank" rel="external">这里</a>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">brew install the_silver_searcher</div></pre></td></tr></table></figure>
+<h1 id="使用技巧"><a href="#使用技巧" class="headerlink" title="使用技巧"></a>使用技巧</h1><p>这里推荐一个网站，<a href="http://www.openvim.com/" target="_blank" rel="external">http://www.openvim.com/</a>，用这个网站做练习不错。</p>
+<h2 id="好用却不常用的快捷键"><a href="#好用却不常用的快捷键" class="headerlink" title="好用却不常用的快捷键"></a>好用却不常用的快捷键</h2><p>以下的命令都是在Normal模式下：</p>
+<p><code>b</code> 移动到上一个单词的开始。</p>
+<p><code>w</code> 移动到下一个单词的末尾。</p>
+<p><code>e</code> 移动到当前单词的末尾。</p>
+<p><code>(N) + i + (word) + [ESC]</code> 插入N个word。e.g. <code>3igo[ESC]</code>会插入三个go。</p>
+<p><code>f + (char)</code> 向后移动光标到第一个char字母出现的地方。</p>
+<p><code>F + (char)</code> 与<code>f + (char)</code>相似，但是是往前移动光标。</p>
+<p><code>(N) + G</code> 移动光标到第N行。</p>
+<p><code>:(N)</code>，和上面的一条一样，也是移动到第N行。</p>
+<p><code>(</code> 和 <code>)</code> 移动到上一个句子的句首，或下一个句子的句首。</p>
+<p><code>{</code> 和 <code>}</code> 移动到上一段落的段首，或下一段落的段首。</p>
+<p><code>%</code> 移动到<code>( )</code> <code>{ }</code> <code>[ ]</code>括号对的另一半。</p>
+<p><code>*</code> 向后查找当前光标所在的单词。</p>
+<p><code>#</code> 向前查找当前光标所在的单词。</p>
+<p><code>zz</code> 将当前行置于屏幕中间。</p>
+<p><code>zt</code> 将当前行置于置于屏幕顶端。</p>
+<p><code>zb</code> 将当前行置于置于屏幕底端。</p>
+<p><code>Ctrl-b</code> 往上翻页，即PageUp。</p>
+<p><code>Ctrl-f</code> 网下翻页，即PageDown。</p>
+<p>以下内容是关于window管理的</p>
+<p><code>ctrl + w</code> 进入窗口管理，结合其他键管理窗口。</p>
+<p><code>ctrl + w</code> <code>r</code> 将当前窗口向下或向右移动。</p>
+<p><code>ctrl + w</code> <code>R</code> 将当前窗口向上或向左移动。</p>
+<p><code>ctrl + w</code> <code>K</code> 将当前窗口移动到最上边。</p>
+<p><code>ctrl + w</code> <code>J</code> 将当前窗口移动到最下边。</p>
+<p><code>ctrl + w</code> <code>H</code> 将当前窗口移动到最左边。</p>
+<p><code>ctrl + w</code> <code>L</code> 将当前窗口移动到最右边。</p>
+<p><code>ctrl + w</code> <code>_</code> 将当前窗口最大化。</p>
+<p><code>ctrl + w</code> <code>&gt;</code> 将当前窗口垂直分割线向右移动。</p>
+<p><code>ctrl + w</code> <code>&lt;</code> 将当前窗口垂直分割线向左移动。</p>
+<p><code>ctrl + w</code> <code>+</code> 将当前水平分割的窗口扩大。</p>
+<p><code>ctrl + w</code> <code>-</code> 将当前水平分割的窗口减小。</p>
+<blockquote>
+<p>为了更好快的移动窗口，我映射了一些快捷键。具体见<a href="#我的按键绑定">我的按键绑定</a>。</p>
+</blockquote>
+<h2 id="我的按键绑定"><a href="#我的按键绑定" class="headerlink" title="我的按键绑定"></a>我的按键绑定</h2><p><code>,</code> <leader>键。</leader></p>
+<p><code>Ctrl + [h|j|k|l]</code> 在多窗口间快速切换。</p>
+<p><code>&lt;leader&gt; + /</code> 反转当前的搜索高亮状态。</p>
+<p><code>&gt;</code> or <code>&lt;</code> 在选择模式下缩紧或反缩进行。</p>
+<p><code>w!!</code> 是不是经常以非root用户编辑root用户权限的文件？这个命令帮助你。</p>
+<p><code>&lt;leader&gt;ew</code>, <code>&lt;leader&gt;ev</code>, <code>&lt;leader&gt;es</code> 打开新文件以新窗口，垂直窗口，水瓶窗口。</p>
+<p><code>&lt;leader&gt;ff</code> 打开一个新窗口，里面显示所有当前光标下的单词出现的位置。</p>
+<p><code>zl</code>, <code>zh</code> 水平滚动窗口。</p>
+<p><code>&lt;leader&gt;w=</code> 等宽所有窗口。</p>
+<p><code>&lt;leader&gt;w&#39;</code> 增加当前水平分割窗口。</p>
+<p><code>&lt;leader&gt;w;</code> 减小当前水平分割窗口。</p>
+<p><code>&lt;leader&gt;w]</code> 向左移动垂直分割线。</p>
+<p><code>&lt;leader&gt;w[</code> 向右移动垂直分割线。</p>
+<p><code>&lt;leader&gt;wp</code> 返回前一次的窗口。</p>
+<h2 id="一些有用的命令"><a href="#一些有用的命令" class="headerlink" title="一些有用的命令"></a>一些有用的命令</h2><p><code>:set wrap</code> 将长的行折断显示。</p>
+<p><code>:set spell</code> 拼写检查，写博客，写comment的时候比较有用。</p>
+<h1 id="Troubleshootings"><a href="#Troubleshootings" class="headerlink" title="Troubleshootings"></a>Troubleshootings</h1><h2 id="与系统剪切板的对接"><a href="#与系统剪切板的对接" class="headerlink" title="与系统剪切板的对接"></a>与系统剪切板的对接</h2><p>在你的<code>init.vim</code>中添加如下内容：</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">set</span> clipboard+=unnamedplus</div></pre></td></tr></table></figure>
+<p>如果你也使用tmux，请安装<code>reattach-to-user-namespace</code>，直接用Homebrew安装就可以。</p>
+<h2 id="Youcompleteme无效"><a href="#Youcompleteme无效" class="headerlink" title="Youcompleteme无效"></a>Youcompleteme无效</h2><p>如果你安装完插件，发现Youcompleteme无法使用，请进入<code>.config/nvim/plugged/YouCompleteMe</code>并执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">python ./install.py --clang-completer</div></pre></td></tr></table></figure>
+<h2 id="nvim-ipy无效"><a href="#nvim-ipy无效" class="headerlink" title="nvim-ipy无效"></a>nvim-ipy无效</h2><p>确保安装了<code>ipykernel</code>，如果有pip，可通过以下命令安装：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">pip install ipykernel</div></pre></td></tr></table></figure>
+<h2 id="Ctrl-H-快捷键在OSX下无效"><a href="#Ctrl-H-快捷键在OSX下无效" class="headerlink" title="Ctrl-H 快捷键在OSX下无效"></a>Ctrl-H 快捷键在OSX下无效</h2><blockquote>
+<p>参考资料：<a href="https://github.com/neovim/neovim/issues/2048" target="_blank" rel="external">https://github.com/neovim/neovim/issues/2048</a></p>
+</blockquote>
+<p>简而言之，在你的终端下执行如下命令，如果你也用tmux的话，同样需要在tmux环境下也执行如下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">infocmp <span class="variable">$TERM</span> | sed <span class="string">'s/kbs=^[hH]/kbs=\\177/'</span> &gt; <span class="variable">$TERM</span>.ti</div><div class="line">tic <span class="variable">$TERM</span>.ti</div></pre></td></tr></table></figure>
+<hr>
+<h3 id="¶-The-end"><a href="#¶-The-end" class="headerlink" title="¶ The end"></a>¶ The end</h3><p>Share Link:  <a href="http://d0u9.win/posts/2898109270.html">http://d0u9.win/posts/2898109270.html</a> </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Tools/" rel="tag"># Tools</a>
+          
+            <a href="/tags/Vim/" rel="tag"># Vim</a>
+          
+            <a href="/tags/Vim-Plugin/" rel="tag"># Vim Plugin</a>
+          
+            <a href="/tags/Neovim/" rel="tag"># Neovim</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/1878247254.html" rel="next" title="更为强大的Vim插件管理器--vim-plug">
+                <i class="fa fa-chevron-left"></i> 更为强大的Vim插件管理器--vim-plug
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/2679791153.html" rel="prev" title="Vim插件介绍--Fugitive">
+                Vim插件介绍--Fugitive <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <!-- avatar previously here -->
+              <p class="site-author-name" itemprop="name">Douglas Su</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">75</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">34</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/d0u9" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://twitter.com/D0u9Su" target="_blank" title="Twitter">
+                    
+                      <i class="fa fa-fw fa-twitter"></i>Twitter</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.facebook.com/profile.php?id=100010131587938" target="_blank" title="FB Page">
+                    
+                      <i class="fa fa-fw fa-facebook"></i>FB Page</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://stackoverflow.com/users/3824053/douglas-su" target="_blank" title="StackOverflow">
+                    
+                      <i class="fa fa-fw fa-stack-overflow"></i>StackOverflow</a>
+                </span>
+                <br />
+              
+            
+          </div>
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#目录"><span class="nav-number">1.</span> <span class="nav-text">目录</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Neovim介绍与安装"><span class="nav-number">2.</span> <span class="nav-text">Neovim介绍与安装</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Neovim安装"><span class="nav-number">2.1.</span> <span class="nav-text">Neovim安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Neovim的一些改变"><span class="nav-number">2.2.</span> <span class="nav-text">Neovim的一些改变</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Neovim的配置于目录说明"><span class="nav-number">2.3.</span> <span class="nav-text">Neovim的配置于目录说明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#我的插件与配置"><span class="nav-number">2.4.</span> <span class="nav-text">我的插件与配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#插件列表与说明"><span class="nav-number">2.4.1.</span> <span class="nav-text">插件列表与说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#下载配置文件"><span class="nav-number">2.4.2.</span> <span class="nav-text">下载配置文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安装插件管理器vim-plug"><span class="nav-number">2.4.3.</span> <span class="nav-text">安装插件管理器vim-plug</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安装插件"><span class="nav-number">2.4.4.</span> <span class="nav-text">安装插件</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#使用技巧"><span class="nav-number">3.</span> <span class="nav-text">使用技巧</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#好用却不常用的快捷键"><span class="nav-number">3.1.</span> <span class="nav-text">好用却不常用的快捷键</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#我的按键绑定"><span class="nav-number">3.2.</span> <span class="nav-text">我的按键绑定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一些有用的命令"><span class="nav-number">3.3.</span> <span class="nav-text">一些有用的命令</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Troubleshootings"><span class="nav-number">4.</span> <span class="nav-text">Troubleshootings</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#与系统剪切板的对接"><span class="nav-number">4.1.</span> <span class="nav-text">与系统剪切板的对接</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Youcompleteme无效"><span class="nav-number">4.2.</span> <span class="nav-text">Youcompleteme无效</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#nvim-ipy无效"><span class="nav-number">4.3.</span> <span class="nav-text">nvim-ipy无效</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ctrl-H-快捷键在OSX下无效"><span class="nav-number">4.4.</span> <span class="nav-text">Ctrl-H 快捷键在OSX下无效</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#¶-The-end"><span class="nav-number">4.4.1.</span> <span class="nav-text">¶ The end</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Douglas Su</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

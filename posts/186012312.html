@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+  <link rel="stylesheet" media="all" href="/lib/Han/dist/han.min.css?v=3.3">
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/icons/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/icons/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/icons/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/icons/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="C,Linux,Linux Kernel," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="转自http://broken.build/2012/11/10/magical-container_of-macro/ 当你开始学习内核，开始阅读内核源码时，早晚你都会遇到这个具有魔力般的宏定义。  引言这个宏能用来做什么？准确的说，这个宏能名副其实。它接受三个参数－－一个指针，一个container的类型名，还有一个指针所代表的成员名。这个宏最后会返回一个新的，指向包含这个指针的contai">
+<meta name="keywords" content="C,Linux,Linux Kernel">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[译]具有魔法的宏--container_of()">
+<meta property="og:url" content="http://d0u9.win/posts/186012312.html">
+<meta property="og:site_name" content="d0u9">
+<meta property="og:description" content="转自http://broken.build/2012/11/10/magical-container_of-macro/ 当你开始学习内核，开始阅读内核源码时，早晚你都会遇到这个具有魔力般的宏定义。  引言这个宏能用来做什么？准确的说，这个宏能名副其实。它接受三个参数－－一个指针，一个container的类型名，还有一个指针所代表的成员名。这个宏最后会返回一个新的，指向包含这个指针的contai">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://oyui6c341.bkt.clouddn.com/images/2015/具有魔法的宏_container_of/01.png">
+<meta property="og:updated_time" content="2017-11-07T13:57:30.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="[译]具有魔法的宏--container_of()">
+<meta name="twitter:description" content="转自http://broken.build/2012/11/10/magical-container_of-macro/ 当你开始学习内核，开始阅读内核源码时，早晚你都会遇到这个具有魔力般的宏定义。  引言这个宏能用来做什么？准确的说，这个宏能名副其实。它接受三个参数－－一个指针，一个container的类型名，还有一个指针所代表的成员名。这个宏最后会返回一个新的，指向包含这个指针的contai">
+<meta name="twitter:image" content="http://oyui6c341.bkt.clouddn.com/images/2015/具有魔法的宏_container_of/01.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://d0u9.win/posts/186012312.html"/>
+
+
+
+
+
+  <title>[译]具有魔法的宏--container_of() | d0u9</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    
+      <img class="site-author-image" itemprop="image"
+        src="/images/avatar.png"
+        alt="Douglas Su" />
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">d0u9</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">For thine is the kingdom, the power, and the glory ...</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://d0u9.win/posts/186012312.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Douglas Su">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="d0u9">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">[译]具有魔法的宏--container_of()</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-07-16T16:30:00+08:00">
+                2015-07-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/" itemprop="url" rel="index">
+                    <span itemprop="name">Science & Technology</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/Programming-Language/" itemprop="url" rel="index">
+                    <span itemprop="name">Programming Language</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/Programming-Language/C/" itemprop="url" rel="index">
+                    <span itemprop="name">C</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body han-init-context" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>转自<a href="http://broken.build/2012/11/10/magical-container_of-macro/" target="_blank" rel="external">http://broken.build/2012/11/10/magical-container_of-macro/</a></p>
+<p>当你开始学习内核，开始阅读内核源码时，早晚你都会遇到这个具有魔力般的宏定义。</p>
+</blockquote>
+<h1 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h1><p>这个宏能用来做什么？准确的说，这个宏能名副其实。它接受三个参数－－一个指针，一个container的类型名，还有一个指针所代表的成员名。这个宏最后会返回一个新的，指向包含这个指针的container的地址。这个宏的确非常的有趣，但是它具体事如何工作的呢，本文将向您介绍。</p>
+<a id="more"></a>
+<p>第一幅图帮助那些没有理解上面内容的人了解<code>container_of(ptr, type, member)</code>宏的原理。</p>
+<p><img src="http://oyui6c341.bkt.clouddn.com/images/2015/具有魔法的宏_container_of/01.png" alt=""></p>
+<p>下面是具体的宏定义代码（该代码定义在/include/linux/kernel.h)</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment"> * container_of - cast a member of a structure out to the containing structure</span></div><div class="line"><span class="comment"> * @ptr:    the pointer to the member.</span></div><div class="line"><span class="comment"> * @type:   the type of the container struct this is embedded in.</span></div><div class="line"><span class="comment"> * @member: the name of the member within the struct.</span></div><div class="line"><span class="comment"> *</span></div><div class="line"><span class="comment"> */</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> container_of(ptr, type, member) (&#123;          \</span></div><div class="line">    const typeof( ((type *)0)-&gt;member ) *__mptr = (ptr);    \</div><div class="line">    (type *)( (<span class="keyword">char</span> *)__mptr - offsetof(type,member) );&#125;)</div></pre></td></tr></table></figure>
+<p>第一眼会觉得这个宏很难理解，而且事实上也是这样的，下面我们一步一步的理解。</p>
+<h1 id="表达式中的语句"><a href="#表达式中的语句" class="headerlink" title="表达式中的语句"></a>表达式中的语句</h1><p>吸引你的低一点应该是整个表达式的结构了吧。我们希望整个语句返回一个指针，对吧？但事实上，这个宏里面只有一些奇怪的<code>{}</code>和两条语句。事实上，这是一个C语言的GNU扩展被叫做<code>braced-group within expression</code>。编译器会对整个语句块进行求值，并用该块中的最后一条语句的值作为返回值。考虑下面的例子，它应该返回<code>5</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> x = (&#123;<span class="number">1</span>; <span class="number">2</span>;&#125;) + <span class="number">3</span>;</div><div class="line"><span class="built_in">printf</span>(<span class="string">"%d\n"</span>, x);</div></pre></td></tr></table></figure>
+<h1 id="typeof"><a href="#typeof" class="headerlink" title="typeof()"></a><code>typeof()</code></h1><p>这是一个不标准的GNU的C扩展。这个关键字接受一个参数并返回它的类型。它的完整语意可以在<a href="http://gcc.gnu.org/onlinedocs/gcc/Typeof.html" target="_blank" rel="external">GCC文档</a>中找到。</p>
+<h1 id="对0指针的解引用"><a href="#对0指针的解引用" class="headerlink" title="对0指针的解引用"></a>对0指针的解引用</h1><p>对0指针解引用会发生什么呢？是的，这是一个指针的小技巧用以获取成员的类型。它并不会造成程序崩溃，因为这个表达式的本身并不会被求值。所有的编译器都会支持对0的解引用。相同的情形会发生在我们我们要取出某个成员的地址时。编译器并不在意这个值，它仅仅是将成员的偏移地址加到成员所在结构体的地址上而已，在这里结构体的地址是0，然后返回新的地址，即成员在这个结构体内的偏移地址。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">s</span> &#123;</span></div><div class="line">        <span class="keyword">char</span> m1;</div><div class="line">        <span class="keyword">char</span> m2;</div><div class="line">&#125;;</div><div class="line"> </div><div class="line"><span class="comment">/* This will print 1 */</span></div><div class="line"><span class="built_in">printf</span>(<span class="string">"%d\n"</span>, &amp;((struct s*)<span class="number">0</span>)-&gt;m2);</div></pre></td></tr></table></figure>
+<p>注意，下面的两个定义是相同的：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">typeof(((struct s *)<span class="number">0</span>)-&gt;m2) c;</div><div class="line"><span class="keyword">char</span> c;</div></pre></td></tr></table></figure></p>
+<h1 id="offsetof-st-m"><a href="#offsetof-st-m" class="headerlink" title="offsetof(st, m)"></a><code>offsetof(st, m)</code></h1><p>这个宏会返回结构体中某个成员相对于该结构体起始地址的偏移量。它是C标准函数库的一部分（包含在stddef.h中）。在内核中由于没有C标准函数库，但依然包含有这个宏定义。这个宏和我们之前看到的0指针解引用有些许相似，这也避免了使用某些现代编译器的内置函数来实现这个功能。这里是一个杂乱的版本（来自内核./include/linux/stddef.h）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">define</span> offsetof(TYPE, MEMBER) ((size_t) &amp;((TYPE *)0)-&gt;MEMBER)</span></div></pre></td></tr></table></figure>
+<p>这个宏会返回在TYPE结构体中叫做MEMBER成员的地址，该结构体存储起始地址为0。</p>
+<h1 id="将它们结合起来"><a href="#将它们结合起来" class="headerlink" title="将它们结合起来"></a>将它们结合起来</h1><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment"> * container_of - cast a member of a structure out to the containing structure</span></div><div class="line"><span class="comment"> * @ptr:    the pointer to the member.</span></div><div class="line"><span class="comment"> * @type:   the type of the container struct this is embedded in.</span></div><div class="line"><span class="comment"> * @member: the name of the member within the struct.</span></div><div class="line"><span class="comment"> *</span></div><div class="line"><span class="comment"> */</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> container_of(ptr, type, member) (&#123;          \</span></div><div class="line">    const typeof( ((type *)0)-&gt;member ) *__mptr = (ptr);    \</div><div class="line">    (type *)( (<span class="keyword">char</span> *)__mptr - offsetof(type,member) );&#125;)</div></pre></td></tr></table></figure>
+<p>如果你认真的看过了本文开始的定义，你会疑惑这个宏定义中的第一句是不是不太对劲。是的，你是正确的。第一行队最终的结果并不会有什么重要作用，它在那儿的原因就是为了类型检查。那么第二行做了什么呢？<strong>它从结构体成员变量的地址中抽取出了该成员在该结构体中的偏移量</strong>用以产生包含它的结构体的地址，就是这样！</p>
+<p>在一步一步了解过所有的关键的，具有魔法的操作之后，它原来是如此的简单。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
+<li><a href="http://broken.build/2012/11/10/magical-container_of-macro/" target="_blank" rel="external">container_of() explained by Greg KH</a></li>
+<li><a href="http://lxr.free-electrons.com/source/include/linux/kernel.h#L691" target="_blank" rel="external">container_of() definition in Linux Kernel</a></li>
+<li><a href="https://gcc.gnu.org/onlinedocs/gcc/Statement-Exprs.html#Statement-Exprs" target="_blank" rel="external">Statements and Declarations in Expressions</a></li>
+<li><a href="http://gcc.gnu.org/onlinedocs/gcc/Typeof.html" target="_blank" rel="external">Referring to a Type with typeof</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Offsetof" target="_blank" rel="external">offsetof()</a></li>
+</ul>
+<hr>
+<h3 id="¶-The-end"><a href="#¶-The-end" class="headerlink" title="¶ The end"></a>¶ The end</h3><p>Share Link:  <a href="http://d0u9.win/posts/186012312.html">http://d0u9.win/posts/186012312.html</a> </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/C/" rel="tag"># C</a>
+          
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+            <a href="/tags/Linux-Kernel/" rel="tag"># Linux Kernel</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/2511021242.html" rel="next" title="MacOS下安装YCM及其相关插件">
+                <i class="fa fa-chevron-left"></i> MacOS下安装YCM及其相关插件
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/4154859231.html" rel="prev" title="内核链表实现中疑惑点的解惑">
+                内核链表实现中疑惑点的解惑 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <!-- avatar previously here -->
+              <p class="site-author-name" itemprop="name">Douglas Su</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">75</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">34</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/d0u9" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://twitter.com/D0u9Su" target="_blank" title="Twitter">
+                    
+                      <i class="fa fa-fw fa-twitter"></i>Twitter</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.facebook.com/profile.php?id=100010131587938" target="_blank" title="FB Page">
+                    
+                      <i class="fa fa-fw fa-facebook"></i>FB Page</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://stackoverflow.com/users/3824053/douglas-su" target="_blank" title="StackOverflow">
+                    
+                      <i class="fa fa-fw fa-stack-overflow"></i>StackOverflow</a>
+                </span>
+                <br />
+              
+            
+          </div>
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#表达式中的语句"><span class="nav-number">2.</span> <span class="nav-text">表达式中的语句</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#typeof"><span class="nav-number">3.</span> <span class="nav-text">typeof()</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#对0指针的解引用"><span class="nav-number">4.</span> <span class="nav-text">对0指针的解引用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#offsetof-st-m"><span class="nav-number">5.</span> <span class="nav-text">offsetof(st, m)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#将它们结合起来"><span class="nav-number">6.</span> <span class="nav-text">将它们结合起来</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">7.</span> <span class="nav-text">参考</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#¶-The-end"><span class="nav-number">7.0.1.</span> <span class="nav-text">¶ The end</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Douglas Su</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

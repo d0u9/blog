@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+  <link rel="stylesheet" media="all" href="/lib/Han/dist/han.min.css?v=3.3">
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/icons/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/icons/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/icons/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/icons/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Linux,Linux Kernel,Netlink Socket," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Excerpted from Wikipedia:  Netlink socket family is a Linux kernel interface used for inter-process communication (IPC) between both the kernel and userspace processes, and between different userspace">
+<meta name="keywords" content="Linux,Linux Kernel,Netlink Socket">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Examples of netlink socket protocol">
+<meta property="og:url" content="http://d0u9.win/posts/2213062665.html">
+<meta property="og:site_name" content="d0u9">
+<meta property="og:description" content="Excerpted from Wikipedia:  Netlink socket family is a Linux kernel interface used for inter-process communication (IPC) between both the kernel and userspace processes, and between different userspace">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2017-11-08T07:19:32.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Examples of netlink socket protocol">
+<meta name="twitter:description" content="Excerpted from Wikipedia:  Netlink socket family is a Linux kernel interface used for inter-process communication (IPC) between both the kernel and userspace processes, and between different userspace">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://d0u9.win/posts/2213062665.html"/>
+
+
+
+
+
+  <title>Examples of netlink socket protocol | d0u9</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    
+      <img class="site-author-image" itemprop="image"
+        src="/images/avatar.png"
+        alt="Douglas Su" />
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">d0u9</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">For thine is the kingdom, the power, and the glory ...</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://d0u9.win/posts/2213062665.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Douglas Su">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="d0u9">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Examples of netlink socket protocol</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-01-07T07:26:00+08:00">
+                2017-01-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/" itemprop="url" rel="index">
+                    <span itemprop="name">Science & Technology</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/Linux/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body han-init-context" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Excerpted from Wikipedia:</p>
+<blockquote>
+<p>Netlink socket family is a Linux kernel interface used for inter-process communication (IPC) between both the kernel and userspace processes, and between different userspace processes, in a way similar to the Unix domain sockets. Similarly to the Unix domain sockets, and unlike INET sockets, Netlink communication cannot traverse host boundaries. However, while the Unix domain sockets use the file system namespace, Netlink processes are addressed by process identifiers (PIDs).</p>
+</blockquote>
+<p>From the description above, it is not hard to know that Netlink acts as a bridge between the kernel and userspace program. Netlink protocol is datagram-oriented and has its own communication protocol.</p>
+<p>In this post, we will focuse on the NETLINK_ROUTE protocol – a protocol of <strong>AF_NETLINK</strong> family. All the supported netlink protocols can be found in <strong>man(7) netlink</strong>.</p>
+<a id="more"></a>
+<h1 id="Some-useful-references"><a href="#Some-useful-references" class="headerlink" title="Some useful references"></a>Some useful references</h1><ol>
+<li><a href="https://people.redhat.com/nhorman/papers/netlink.pdf" target="_blank" rel="external">Understanding And Programming With Netlink Sockets</a></li>
+<li><a href="https://linux.die.net/man/7/netlink" target="_blank" rel="external">man(7) netlink</a></li>
+<li><a href="https://linux.die.net/man/3/netlink" target="_blank" rel="external">man(3) netlink</a></li>
+<li><a href="https://linux.die.net/man/7/rtnetlink" target="_blank" rel="external">man(7) rtnetlink</a></li>
+<li><a href="https://linux.die.net/man/3/rtnetlink" target="_blank" rel="external">man(3) rtnetlink</a></li>
+<li><a href="https://www.infradead.org/~tgr/libnl/doc/core.html" target="_blank" rel="external">libnl</a></li>
+<li><a href="http://lxr.free-electrons.com/source/include/uapi/linux/netlink.h#L52" target="_blank" rel="external">Linux Kernel source code - netlink</a></li>
+</ol>
+<h1 id="netlink"><a href="#netlink" class="headerlink" title="netlink"></a>netlink</h1><h2 id="netlink-header-structure"><a href="#netlink-header-structure" class="headerlink" title="netlink header structure"></a>netlink header structure</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">nlmsghdr</span> &#123;</span></div><div class="line">    __u32 nlmsg_len;    <span class="comment">/* Length of message including header */</span></div><div class="line">    __u16 nlmsg_type;   <span class="comment">/* Type of message content */</span></div><div class="line">    __u16 nlmsg_flags;  <span class="comment">/* Additional flags */</span></div><div class="line">    __u32 nlmsg_seq;    <span class="comment">/* Sequence number */</span></div><div class="line">    __u32 nlmsg_pid;    <span class="comment">/* Sender port ID */</span></div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>Netlink message contains one or more <strong>nlmsghdr</strong> structures, each of them has a associated payload. The payload is varied according to the netlink meesage type which is indicated by <code>nlmsg_type</code> field. In this post, we are mainly<br>concentrating on <code>NETLINK_ROUTE</code> message type.</p>
+<h2 id="netlink-Macros"><a href="#netlink-Macros" class="headerlink" title="netlink Macros"></a>netlink Macros</h2><p>As the <strong>man(7) netlink</strong> suggested, the netlink byte stream should be accessed only with the standard <code>NLMSG_*</code> macros, <strong>man(3) netlink</strong> for more details.</p>
+<h2 id="A-visual-view-of-netlink-message"><a href="#A-visual-view-of-netlink-message" class="headerlink" title="A visual view of netlink message"></a>A visual view of netlink message</h2><p>To better illustrate the layout of netlink protocol, visual view is the best.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">+----------+---------+------------------------+---------+ +----------+---------+</div><div class="line">|          |         |                        |         | |          |         |</div><div class="line">| nlmsghdr | padding |         payload        | padding | | nlmsghdr |   ...   |</div><div class="line">|          |         |                        |         | |          |         |</div><div class="line">+----------+---------+------------------------+---------+ +----------+---------+</div></pre></td></tr></table></figure>
+<p>Due to the fact that <code>staruct nlmsghdr</code> has already well aligned on some architecture (e.g. my x86_64 Linux), so the paddings in the picture above maybe not present in the real world.</p>
+<h1 id="rtnetlink"><a href="#rtnetlink" class="headerlink" title="rtnetlink"></a>rtnetlink</h1><p><strong>rtnetlink</strong>, as described in <strong>man(3) rtnetlink</strong>, allows user to read and modify kernel’s routing table. Each rtnetlink message contains one rtnetlink header, and followed by one or more attributes which is represented by <code>struct rtattr</code>.</p>
+<h2 id="rtnetlink-header-structure"><a href="#rtnetlink-header-structure" class="headerlink" title="rtnetlink header structure"></a>rtnetlink header structure</h2><p>The header structure of <strong>rtnetlink</strong> is varied according to different message type.</p>
+<p>We will mainly introduce <code>RTM_NEWADDR</code>, <code>RTM_DELADDR</code> and <code>RTM_GETADDR</code> types in this post to illustrate how to set and get IP address via Netlink protocol.</p>
+<p>The <code>RTM_NEWADDR</code>,<code>RTM_DELADDR</code> and <code>RTM_GETADDR</code> message types have the same message header structure, i.e. <code>struct ifaddrmsg</code>.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">ifaddrmsg</span> &#123;</span></div><div class="line">  <span class="keyword">unsigned</span> <span class="keyword">char</span> ifa_family;    <span class="comment">/* Address type */</span></div><div class="line">  <span class="keyword">unsigned</span> <span class="keyword">char</span> ifa_prefixlen; <span class="comment">/* Prefixlength of address */</span></div><div class="line">  <span class="keyword">unsigned</span> <span class="keyword">char</span> ifa_flags;     <span class="comment">/* Address flags */</span></div><div class="line">  <span class="keyword">unsigned</span> <span class="keyword">char</span> ifa_scope;     <span class="comment">/* Address scope */</span></div><div class="line">  <span class="keyword">int</span>           ifa_index;     <span class="comment">/* Interface index */</span></div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<h2 id="attributes-of-RTM-NEWADDR-RTM-DELADDR-and-RTM-GETADDR"><a href="#attributes-of-RTM-NEWADDR-RTM-DELADDR-and-RTM-GETADDR" class="headerlink" title="attributes of RTM_NEWADDR, RTM_DELADDR and RTM_GETADDR"></a>attributes of <code>RTM_NEWADDR</code>, <code>RTM_DELADDR</code> and <code>RTM_GETADDR</code></h2><p>As dictated before, each rtnetlink message is made up of two parts – one header and one or more optional attributes. The attributes contain the actual values which is passed via netlink. For example, when setting IP address, netlink header indicates that we opt rtnetlink message type to read and modify kernel’s routing table (include IP address assigning), rtnetlink header designates that we are interested in IP manipulation, and the attributes carry the actual IP address value.</p>
+<p>Attributes has the structure below:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">rtattr</span> &#123;</span></div><div class="line">   <span class="keyword">unsigned</span> <span class="keyword">short</span> rta_len;    <span class="comment">/* Length of option */</span></div><div class="line">   <span class="keyword">unsigned</span> <span class="keyword">short</span> rta_type;   <span class="comment">/* Type of option */</span></div><div class="line">   <span class="comment">/* Data follows */</span></div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>For <code>RTM_NEWADDR</code>, <code>RTM_DELADDR</code> and <code>RTM_GETADDR</code> message type, there 7 available attribute types.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">rta_type        value type             description</div><div class="line">─────────────────────────────────────────────────────────────</div><div class="line">IFA_UNSPEC      -                      unspecified.</div><div class="line">IFA_ADDRESS     raw protocol address   interface address</div><div class="line">IFA_LOCAL       raw protocol address   local address</div><div class="line">IFA_LABEL       asciiz string          name of the interface</div><div class="line">IFA_BROADCAST   raw protocol address   broadcast address.</div><div class="line">IFA_ANYCAST     raw protocol address   anycast address</div><div class="line">IFA_CACHEINFO   struct ifa_cacheinfo   Address information.</div></pre></td></tr></table></figure>
+<h2 id="A-visual-view-of-rtnetlink-message"><a href="#A-visual-view-of-rtnetlink-message" class="headerlink" title="A visual view of rtnetlink message"></a>A visual view of rtnetlink message</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">+---------------------------------------- NLMSG_LENGTH --------------------------------------+</div><div class="line">|                                                                                            |</div><div class="line">|                                          +-------- RTA_LENGTH ---------+                   |</div><div class="line">|                                          |                             |                   |</div><div class="line">+----------+---------+-----------+---------+--------+----------+---------+--------+----------+---------+----------+</div><div class="line">|          |         |           |         |        |          |         |        |          |         |          |</div><div class="line">| nlmsghdr | padding | ifaddrmsg | padding | rtattr | rta_data | padding | rtattr | rta_data | padding | nlmsghdr |</div><div class="line">|          |         |           |         |        |          |         |        |          |         |          |</div><div class="line">+----------+---------+-----------+---------+--------+----------+---------+--------+----------+---------+----------+</div><div class="line">                     ^                     ^        ^                    ^                             ^</div><div class="line">                     |                     |        |                    |                             |</div><div class="line">                     |                     |        |                    |                             |</div><div class="line">                 NLMSG_DATA             IFA_RTA   RTA_DATA            RTA_NEXT                     NLMSG_NEXT</div></pre></td></tr></table></figure>
+<h1 id="Example-to-illustate-netlink-usage"><a href="#Example-to-illustate-netlink-usage" class="headerlink" title="Example to illustate netlink usage"></a>Example to illustate netlink usage</h1><p>Here we post a simple example to illustrate the usage of netlink. The full code can be found on my <a href="https://www.github.com/d0u9/examples/blob/master/C/netlink/ip_add.c" target="_blank" rel="external">Github</a>.</p>
+<p>Download this code and compile it with <code>gcc ip_add.c</code>.</p>
+<hr>
+<h3 id="¶-The-end"><a href="#¶-The-end" class="headerlink" title="¶ The end"></a>¶ The end</h3><p>Share Link:  <a href="http://d0u9.win/posts/2213062665.html">http://d0u9.win/posts/2213062665.html</a> </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+            <a href="/tags/Linux-Kernel/" rel="tag"># Linux Kernel</a>
+          
+            <a href="/tags/Netlink-Socket/" rel="tag"># Netlink Socket</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/1659865178.html" rel="next" title="There was a problem updating a software component. Try again later...">
+                <i class="fa fa-chevron-left"></i> There was a problem updating a software component. Try again later...
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/315230980.html" rel="prev" title="Applying the Linus Torvalds "Good Taste" Coding Requirement">
+                Applying the Linus Torvalds "Good Taste" Coding Requirement <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <!-- avatar previously here -->
+              <p class="site-author-name" itemprop="name">Douglas Su</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">75</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">34</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/d0u9" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://twitter.com/D0u9Su" target="_blank" title="Twitter">
+                    
+                      <i class="fa fa-fw fa-twitter"></i>Twitter</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.facebook.com/profile.php?id=100010131587938" target="_blank" title="FB Page">
+                    
+                      <i class="fa fa-fw fa-facebook"></i>FB Page</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://stackoverflow.com/users/3824053/douglas-su" target="_blank" title="StackOverflow">
+                    
+                      <i class="fa fa-fw fa-stack-overflow"></i>StackOverflow</a>
+                </span>
+                <br />
+              
+            
+          </div>
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Some-useful-references"><span class="nav-number">1.</span> <span class="nav-text">Some useful references</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#netlink"><span class="nav-number">2.</span> <span class="nav-text">netlink</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#netlink-header-structure"><span class="nav-number">2.1.</span> <span class="nav-text">netlink header structure</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#netlink-Macros"><span class="nav-number">2.2.</span> <span class="nav-text">netlink Macros</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#A-visual-view-of-netlink-message"><span class="nav-number">2.3.</span> <span class="nav-text">A visual view of netlink message</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#rtnetlink"><span class="nav-number">3.</span> <span class="nav-text">rtnetlink</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#rtnetlink-header-structure"><span class="nav-number">3.1.</span> <span class="nav-text">rtnetlink header structure</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#attributes-of-RTM-NEWADDR-RTM-DELADDR-and-RTM-GETADDR"><span class="nav-number">3.2.</span> <span class="nav-text">attributes of RTM_NEWADDR, RTM_DELADDR and RTM_GETADDR</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#A-visual-view-of-rtnetlink-message"><span class="nav-number">3.3.</span> <span class="nav-text">A visual view of rtnetlink message</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Example-to-illustate-netlink-usage"><span class="nav-number">4.</span> <span class="nav-text">Example to illustate netlink usage</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#¶-The-end"><span class="nav-number">4.0.1.</span> <span class="nav-text">¶ The end</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Douglas Su</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+  <link rel="stylesheet" media="all" href="/lib/Han/dist/han.min.css?v=3.3">
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/icons/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/icons/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/icons/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/icons/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Linux,Linux Kernel,Tools,Vim,Vim Plugin," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="I asked this question on Stackoverflow. Well, even I received the down vote, however, I still feel that the answer from Sam Protsenko gives me a lot help.">
+<meta name="keywords" content="Linux,Linux Kernel,Tools,Vim,Vim Plugin">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vim configuration for Linux kernel development">
+<meta property="og:url" content="http://d0u9.win/posts/2052776767.html">
+<meta property="og:site_name" content="d0u9">
+<meta property="og:description" content="I asked this question on Stackoverflow. Well, even I received the down vote, however, I still feel that the answer from Sam Protsenko gives me a lot help.">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://i.stack.imgur.com/mckjb.png">
+<meta property="og:updated_time" content="2017-11-07T14:21:55.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Vim configuration for Linux kernel development">
+<meta name="twitter:description" content="I asked this question on Stackoverflow. Well, even I received the down vote, however, I still feel that the answer from Sam Protsenko gives me a lot help.">
+<meta name="twitter:image" content="http://i.stack.imgur.com/mckjb.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://d0u9.win/posts/2052776767.html"/>
+
+
+
+
+
+  <title>Vim configuration for Linux kernel development | d0u9</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    
+      <img class="site-author-image" itemprop="image"
+        src="/images/avatar.png"
+        alt="Douglas Su" />
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">d0u9</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">For thine is the kingdom, the power, and the glory ...</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://d0u9.win/posts/2052776767.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Douglas Su">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="d0u9">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Vim configuration for Linux kernel development</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-11-13T06:39:00+08:00">
+                2015-11-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/" itemprop="url" rel="index">
+                    <span itemprop="name">Science & Technology</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/Tools/" itemprop="url" rel="index">
+                    <span itemprop="name">Tools</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body han-init-context" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>I asked this question on <a href="http://stackoverflow.com/questions/33676829/vim-configuration-for-linux-kernel-development" target="_blank" rel="external">Stackoverflow</a>. Well, even I received the down vote, however, I still feel that the answer from Sam Protsenko gives me a lot help.</p>
+<a id="more"></a>
+<hr>
+<p>Main differences between Linux kernel and regular C project (from developer’s point of view) are next:</p>
+<ul>
+<li>kernel is very big project (so you should choose which code to index)</li>
+<li>it has architecture dependent code (and you are only interested in one specific architecture at a time; other architecture shouldn’t be indexed)</li>
+<li>it has very specific <a href="https://www.kernel.org/doc/Documentation/CodingStyle" target="_blank" rel="external">coding style</a> you should stick to (and vim should be configured to display code accordingly)</li>
+<li>it doesn’t use C standard library, but rather has it’s own similar routines (so your index tool shouldn’t index libc sources)</li>
+</ul>
+<h2 id="Installing-indexing-tools"><a href="#Installing-indexing-tools" class="headerlink" title="Installing indexing tools"></a>Installing indexing tools</h2><p>To navigate kernel code I can propose you to use <code>cscope</code> and <code>ctags</code> tools. To install them run next command:</p>
+<pre><code>$ sudo aptitude install cscope exuberant-ctags
+</code></pre><p>A little explanation:</p>
+<ul>
+<li><code>cscope</code>: will be used to navigate the code (switch between functions, etc.)</li>
+<li><code>ctags</code>: needed for <code>Tagbar</code> plugin (will be discussed further) and for <code>Omni completion</code> (auto completion mechanism in vim); can be also used for navigation</li>
+</ul>
+<h2 id="Creating-index-database"><a href="#Creating-index-database" class="headerlink" title="Creating index database"></a>Creating index database</h2><p>Now you should index your kernel. That’s the tricky part. Insight were taken from <a href="http://cscope.sourceforge.net/large_projects.html" target="_blank" rel="external">here</a>.</p>
+<p>First you need to create <code>cscope.files</code> file which would list all files you want to index. For example, I’m using next commands to list files for ARM architecture (<code>arch/arm</code>), and particularly OMAP platform:</p>
+<!-- language: sh -->
+<pre><code>$ find  $dir                                           \
+        -path &quot;$dir/arch*&quot;             -prune -o       \
+        -path &quot;$dir/tmp*&quot;              -prune -o       \
+        -path &quot;$dir/Documentation*&quot;    -prune -o       \
+        -path &quot;$dir/scripts*&quot;          -prune -o       \
+        -type f -name &quot;*.[chsS]&quot; -print &gt; cscope.files
+
+$ find  $dir/arch/arm/boot/                            \
+        $dir/arch/arm/common/                          \
+        $dir/arch/arm/include/                         \
+        $dir/arch/arm/kernel/                          \
+        $dir/arch/arm/lib/                             \
+        $dir/arch/arm/mach-omap2/                      \
+        $dir/arch/arm/mm/                              \
+        $dir/arch/arm/plat-omap/                       \
+        -type f -name &quot;*.[chsS]&quot; -print &gt;&gt; cscope.files
+</code></pre><p>For x86 architecture (<code>arch/x86</code>) you can use something like this:</p>
+<!-- language: sh -->
+<pre><code>$ find  $dir                                           \
+        -path &quot;$dir/arch*&quot;             -prune -o       \
+        -path &quot;$dir/tmp*&quot;              -prune -o       \
+        -path &quot;$dir/Documentation*&quot;    -prune -o       \
+        -path &quot;$dir/scripts*&quot;          -prune -o       \
+        -type f -name &quot;*.[chsS]&quot; -print &gt; cscope.files
+
+$ find  $dir/arch/x86/boot/                            \
+        $dir/arch/x86/crypto/                          \
+        $dir/arch/x86/ia32/                            \
+        $dir/arch/x86/include/                         \
+        $dir/arch/x86/kernel/                          \
+        $dir/arch/x86/lib/                             \
+        $dir/arch/x86/mm/                              \
+        $dir/arch/x86/pci/                             \
+        $dir/arch/x86/power/                           \
+        $dir/arch/x86/realmode/                        \
+        $dir/arch/x86/syscalls/                        \
+        $dir/arch/x86/video/                           \
+        -type f -name &quot;*.[chsS]&quot; -print &gt;&gt; cscope.files
+</code></pre><p>Where <code>dir</code> variable can have one of next values:</p>
+<ul>
+<li><code>.</code>: if you are gonna work only in kernel source code directory; in this case those commands should be run from root directory of kernel source code</li>
+<li><strong>absolute path to your kernel source code directory</strong>: if you are gonna develop some out-of-tree kernel module; it this case script can be run from anywhere</li>
+</ul>
+<p>I’m using first option (<code>dir=.</code>), because I’m not developing any out-of-tree modules.</p>
+<p>Now when <code>cscope.files</code> file is ready, we need to run actual indexing:</p>
+<pre><code>$ cscope -b -q -k
+</code></pre><p>Where <code>-k</code> parameter tells <code>cscope</code> to not index C standard library (as kernel doesn’t use it).</p>
+<p>Now it’s time to create <code>ctags</code> index database. To accelerate this stage, we’re gonna use already created <code>cscope.files</code>:</p>
+<pre><code>$ ctags -L cscope.files
+</code></pre><p>Ok, <code>cscope</code> and <code>ctags</code> index databases are built, and you can remove <code>cscope.files</code> file, as we don’t need it anymore:</p>
+<pre><code>$ rm -f cscope.files
+</code></pre><p>Next files contain index databases (for <code>cscope</code> and <code>ctags</code>):</p>
+<pre><code>- cscope.in.out
+- cscope.out
+- cscope.po.out
+- tags
+</code></pre><p>Keep them in root of kernel sources directory.</p>
+<h2 id="vim-plugins"><a href="#vim-plugins" class="headerlink" title="vim plugins"></a>vim plugins</h2><p>Next we are gonna install some plugins for vim. To have a better grasp on it, I encourage you to use <strong>pathogen</strong> plugin. It allows you to just <code>git clone</code> vim plugins to your <code>~/.vim/bundle/</code> and keep them isolated, rather than mixing files from different plugins in <code>~/.vim</code> directory.</p>
+<p>Install <strong>pathogen</strong> like it’s described <a href="https://github.com/tpope/vim-pathogen" target="_blank" rel="external">here</a>.</p>
+<p>Don’t forget to do next stuff (as it’s described at the same link):</p>
+<blockquote>
+<p>Add this to your <code>vimrc</code>:</p>
+<pre><code>execute pathogen#infect()
+</code></pre><p>If you’re brand new to Vim and lacking a <code>vimrc</code>, <code>vim ~/.vimrc</code> and paste in the following super-minimal example:</p>
+<pre><code>execute pathogen#infect()
+syntax on
+filetype plugin indent on
+</code></pre></blockquote>
+<h2 id="Installing-cscope-plugin-for-vim"><a href="#Installing-cscope-plugin-for-vim" class="headerlink" title="Installing cscope plugin for vim"></a>Installing cscope plugin for vim</h2><p>To use cscope in vim, you need to install <code>cscope_maps.vim</code> plugin first.<br>To install it using <strong>pathogen</strong> you can just clone <a href="https://github.com/joe-skb7/cscope-maps" target="_blank" rel="external">this</a> repo to your <code>~/.vim/bundle</code>:</p>
+<pre><code>$ git clone https://github.com/joe-skb7/cscope-maps.git ~/.vim/bundle/cscope-maps
+</code></pre><p>Now you should be able to navigate between functions and files in vim. Open some kernel source file, put your keyboard cursor on some function call, and press <kbd>Ctrl</kbd>+<kbd>\</kbd> followed by <kbd>g</kbd>. It should bring you to the function implementation. Or it can show you all available function implementations, then you can choose which one to use: <a href="http://i.stack.imgur.com/mckjb.png" target="_blank" rel="external"><img src="http://i.stack.imgur.com/mckjb.png" alt="cscope-struct"></a>.</p>
+<p>For the rest of key mappings see <a href="https://github.com/joe-skb7/cscope-maps/blob/master/plugin/cscope_maps.vim#L52" target="_blank" rel="external">cscope_maps.vim</a> file.</p>
+<p>You can also use commands in vim like:</p>
+<pre><code>:cs f g kmalloc
+</code></pre><p>See <code>:help cscope</code> for details.</p>
+<h2 id="ctags-note"><a href="#ctags-note" class="headerlink" title="ctags note"></a>ctags note</h2><p>ctags still can be useful for navigation, for example when looking for some <code>#define</code> declaration. You can put cursor on this define usage and press <kbd>g</kbd> followed by <kbd>Ctrl</kbd>+<kbd>]</kbd>. See <a href="http://stackoverflow.com/a/1749621/3866447" target="_blank" rel="external">this answer</a> for details.</p>
+<h2 id="out-of-tree-modules-development-note"><a href="#out-of-tree-modules-development-note" class="headerlink" title="out-of-tree modules development note"></a>out-of-tree modules development note</h2><p>If you are developing out-of-tree module, you will probably need to load <code>cscope</code> and <code>ctags</code> databases from your kernel directory. It can be done by next commands in vim (in command mode).</p>
+<p>Load external cscope database:</p>
+<pre><code>:cs add /path/to/your/kernel/cscope.out
+</code></pre><p>Load external ctags database:</p>
+<pre><code>:set tags=/path/to/your/kernel/tags
+</code></pre><h1 id="vimrc"><a href="#vimrc" class="headerlink" title="vimrc"></a>vimrc</h1><p>Some modifications need to be done to your <code>~/.vimrc</code> as well, in order to better support kernel development.</p>
+<p>First of all, let’s highlight 81th column with vertical line (as kernel coding requires that you should keep your lines length at 80 characters max):</p>
+<pre><code>&quot; 80 characters line
+set colorcolumn=81
+&quot;execute &quot;set colorcolumn=&quot; . join(range(81,335), &apos;,&apos;)
+highlight ColorColumn ctermbg=Black ctermfg=DarkRed
+</code></pre><p>Uncomment second line if you want to make 80+ columns highlighted as well.</p>
+<p>Trailing spaces are prohibited by kernel coding style, so you may want to highlight them:</p>
+<pre><code>&quot; Highlight trailing spaces
+&quot; http://vim.wikia.com/wiki/Highlight_unwanted_spaces
+highlight ExtraWhitespace ctermbg=red guibg=red
+match ExtraWhitespace /\s\+$/
+autocmd BufWinEnter * match ExtraWhitespace /\s\+$/
+autocmd InsertEnter * match ExtraWhitespace /\s\+\%#\@&lt;!$/
+autocmd InsertLeave * match ExtraWhitespace /\s\+$/
+autocmd BufWinLeave * call clearmatches()
+</code></pre><h2 id="Kernel-coding-style"><a href="#Kernel-coding-style" class="headerlink" title="Kernel coding style"></a>Kernel coding style</h2><p>To make vim respect kernel coding style, you can pull ready to use plugin, like <a href="https://github.com/bhilburn/kernel-coding-style" target="_blank" rel="external">kernel-coding-style</a> or <a href="https://github.com/vivien/vim-linux-coding-style/commits/master" target="_blank" rel="external">vim-linux-coding-style</a>.</p>
+<h2 id="Useful-plugins"><a href="#Useful-plugins" class="headerlink" title="Useful plugins"></a>Useful plugins</h2><p>Next plugins are commonly used, so you can find them useful as well:</p>
+<ul>
+<li><a href="https://github.com/scrooloose/nerdtree" target="_blank" rel="external">NERDTree</a></li>
+<li><a href="https://github.com/majutsushi/tagbar" target="_blank" rel="external">Tagbar</a></li>
+<li><a href="https://github.com/bogado/file-line" target="_blank" rel="external">file-line</a></li>
+<li><a href="https://github.com/bling/vim-airline" target="_blank" rel="external">vim-airline</a></li>
+</ul>
+<h2 id="Omni-completion"><a href="#Omni-completion" class="headerlink" title="Omni completion"></a>Omni completion</h2><p>Auto completion works rather slow on such a big project as kernel. If you still want it, you can add next lines to your <code>~/.vimrc</code>:</p>
+<pre><code>&quot; Enable OmniCompletion
+&quot; http://vim.wikia.com/wiki/Omni_completion
+filetype plugin on
+set omnifunc=syntaxcomplete#Complete
+
+&quot; Configure menu behavior
+&quot; http://vim.wikia.com/wiki/VimTip1386
+set completeopt=longest,menuone
+inoremap &lt;expr&gt; &lt;CR&gt; pumvisible() ? &quot;\&lt;C-y&gt;&quot; : &quot;\&lt;C-g&gt;u\&lt;CR&gt;&quot;
+inoremap &lt;expr&gt; &lt;C-n&gt; pumvisible() ? &apos;&lt;C-n&gt;&apos; :
+  \ &apos;&lt;C-n&gt;&lt;C-r&gt;=pumvisible() ? &quot;\&lt;lt&gt;Down&gt;&quot; : &quot;&quot;&lt;CR&gt;&apos;
+inoremap &lt;expr&gt; &lt;M-,&gt; pumvisible() ? &apos;&lt;C-n&gt;&apos; :
+  \ &apos;&lt;C-x&gt;&lt;C-o&gt;&lt;C-n&gt;&lt;C-p&gt;&lt;C-r&gt;=pumvisible() ? &quot;\&lt;lt&gt;Down&gt;&quot; : &quot;&quot;&lt;CR&gt;&apos;
+
+&quot; Use Ctrl+Space for omni-completion
+&quot; http://stackoverflow.com/questions/510503/ctrlspace-for-omni-and-keyword-completion-in-vim
+inoremap &lt;expr&gt; &lt;C-Space&gt; pumvisible() \|\| &amp;omnifunc == &apos;&apos; ?
+  \ &quot;\&lt;lt&gt;C-n&gt;&quot; :
+  \ &quot;\&lt;lt&gt;C-x&gt;\&lt;lt&gt;C-o&gt;&lt;c-r&gt;=pumvisible() ?&quot; .
+  \ &quot;\&quot;\\&lt;lt&gt;c-n&gt;\\&lt;lt&gt;c-p&gt;\\&lt;lt&gt;c-n&gt;\&quot; :&quot; .
+  \ &quot;\&quot; \\&lt;lt&gt;bs&gt;\\&lt;lt&gt;C-n&gt;\&quot;\&lt;CR&gt;&quot;
+imap &lt;C-@&gt; &lt;C-Space&gt;
+
+&quot; Popup menu hightLight Group
+highlight Pmenu ctermbg=13 guibg=LightGray
+highlight PmenuSel ctermbg=7 guibg=DarkBlue guifg=White
+highlight PmenuSbar ctermbg=7 guibg=DarkGray
+highlight PmenuThumb guibg=Black
+
+&quot; Enable global scope search
+let OmniCpp_GlobalScopeSearch = 1
+&quot; Show function parameters
+let OmniCpp_ShowPrototypeInAbbr = 1
+&quot; Show access information in pop-up menu
+let OmniCpp_ShowAccess = 1
+&quot; Auto complete after &apos;.&apos;
+let OmniCpp_MayCompleteDot = 1
+&quot; Auto complete after &apos;-&gt;&apos;
+let OmniCpp_MayCompleteArrow = 1
+&quot; Auto complete after &apos;::&apos;
+let OmniCpp_MayCompleteScope = 0
+&quot; Don&apos;t select first item in pop-up menu
+let OmniCpp_SelectFirstItem = 0
+</code></pre><p>And use <kbd>Ctrl</kbd>+<kbd>Space</kbd> for auto completion.</p>
+<h2 id="Color-schemes"><a href="#Color-schemes" class="headerlink" title="Color schemes"></a>Color schemes</h2><p>First of all you want to be sure that your terminal supports 256 colors. Then put next line to your <code>~/.vimrc</code>:</p>
+<pre><code>set t_Co=256
+</code></pre><p>Now download schemes you are prefer to <code>~/.vim/colors</code> and select them in <code>~/.vimrc</code>:</p>
+<pre><code>colorscheme hybrid
+set background=dark
+</code></pre><p>Which color scheme to use it strongly opinion based matter. I may recommend <a href="https://github.com/mrkn/mrkn256.vim" target="_blank" rel="external">mrkn256</a> and <a href="https://github.com/w0ng/vim-hybrid" target="_blank" rel="external">hybrid</a> for starters.</p>
+<p>Share Link:  <a href="http://d0u9.win/posts/2052776767.html">http://d0u9.win/posts/2052776767.html</a> </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+            <a href="/tags/Linux-Kernel/" rel="tag"># Linux Kernel</a>
+          
+            <a href="/tags/Tools/" rel="tag"># Tools</a>
+          
+            <a href="/tags/Vim/" rel="tag"># Vim</a>
+          
+            <a href="/tags/Vim-Plugin/" rel="tag"># Vim Plugin</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/1703982318.html" rel="next" title="三种线程的实现方式">
+                <i class="fa fa-chevron-left"></i> 三种线程的实现方式
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/2360490712.html" rel="prev" title="Ghost博客搭建">
+                Ghost博客搭建 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <!-- avatar previously here -->
+              <p class="site-author-name" itemprop="name">Douglas Su</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">75</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">34</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/d0u9" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://twitter.com/D0u9Su" target="_blank" title="Twitter">
+                    
+                      <i class="fa fa-fw fa-twitter"></i>Twitter</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.facebook.com/profile.php?id=100010131587938" target="_blank" title="FB Page">
+                    
+                      <i class="fa fa-fw fa-facebook"></i>FB Page</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://stackoverflow.com/users/3824053/douglas-su" target="_blank" title="StackOverflow">
+                    
+                      <i class="fa fa-fw fa-stack-overflow"></i>StackOverflow</a>
+                </span>
+                <br />
+              
+            
+          </div>
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Installing-indexing-tools"><span class="nav-number">1.</span> <span class="nav-text">Installing indexing tools</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Creating-index-database"><span class="nav-number">2.</span> <span class="nav-text">Creating index database</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#vim-plugins"><span class="nav-number">3.</span> <span class="nav-text">vim plugins</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Installing-cscope-plugin-for-vim"><span class="nav-number">4.</span> <span class="nav-text">Installing cscope plugin for vim</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ctags-note"><span class="nav-number">5.</span> <span class="nav-text">ctags note</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#out-of-tree-modules-development-note"><span class="nav-number">6.</span> <span class="nav-text">out-of-tree modules development note</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#vimrc"><span class="nav-number"></span> <span class="nav-text">vimrc</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Kernel-coding-style"><span class="nav-number">1.</span> <span class="nav-text">Kernel coding style</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Useful-plugins"><span class="nav-number">2.</span> <span class="nav-text">Useful plugins</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Omni-completion"><span class="nav-number">3.</span> <span class="nav-text">Omni completion</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Color-schemes"><span class="nav-number">4.</span> <span class="nav-text">Color schemes</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Douglas Su</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

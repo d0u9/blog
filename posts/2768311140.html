@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+  <link rel="stylesheet" media="all" href="/lib/Han/dist/han.min.css?v=3.3">
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/icons/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/icons/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/icons/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/icons/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Linux,Linux Kernel,Linux Driver," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="在Linux系统中，ioctl()系统调用可以说是一个万金油，任何无法用标准文件操作完成的功能，例如修改网卡物理地址，修改串口波特率等操作均可以使用ioctl()系统调用来完成。 ioctl()系统调用的本质是自己创建了一套子命令系统，用以对某一个设备的特有属性进行控制。">
+<meta name="keywords" content="Linux,Linux Kernel,Linux Driver">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux驱动开发--ioctl入门">
+<meta property="og:url" content="http://d0u9.win/posts/2768311140.html">
+<meta property="og:site_name" content="d0u9">
+<meta property="og:description" content="在Linux系统中，ioctl()系统调用可以说是一个万金油，任何无法用标准文件操作完成的功能，例如修改网卡物理地址，修改串口波特率等操作均可以使用ioctl()系统调用来完成。 ioctl()系统调用的本质是自己创建了一套子命令系统，用以对某一个设备的特有属性进行控制。">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2017-11-07T14:13:52.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux驱动开发--ioctl入门">
+<meta name="twitter:description" content="在Linux系统中，ioctl()系统调用可以说是一个万金油，任何无法用标准文件操作完成的功能，例如修改网卡物理地址，修改串口波特率等操作均可以使用ioctl()系统调用来完成。 ioctl()系统调用的本质是自己创建了一套子命令系统，用以对某一个设备的特有属性进行控制。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://d0u9.win/posts/2768311140.html"/>
+
+
+
+
+
+  <title>Linux驱动开发--ioctl入门 | d0u9</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    
+      <img class="site-author-image" itemprop="image"
+        src="/images/avatar.png"
+        alt="Douglas Su" />
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">d0u9</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">For thine is the kingdom, the power, and the glory ...</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://d0u9.win/posts/2768311140.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Douglas Su">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="d0u9">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Linux驱动开发--ioctl入门</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-08-22T15:39:00+08:00">
+                2015-08-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/" itemprop="url" rel="index">
+                    <span itemprop="name">Science & Technology</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/Linux/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body han-init-context" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>在Linux系统中，<code>ioctl()</code>系统调用可以说是一个万金油，任何无法用标准文件操作完成的功能，例如修改网卡物理地址，修改串口波特率等操作均可以使用<code>ioctl()</code>系统调用来完成。</p>
+<p><code>ioctl()</code>系统调用的本质是自己创建了一套子命令系统，用以对某一个设备的特有属性进行控制。</p>
+<a id="more"></a>
+<h1 id="用到的函数或宏定义"><a href="#用到的函数或宏定义" class="headerlink" title="用到的函数或宏定义"></a>用到的函数或宏定义</h1><h2 id="ioctl-函数"><a href="#ioctl-函数" class="headerlink" title="ioctl()函数"></a>ioctl()函数</h2><p><code>ioctl()</code>函数和<code>read()</code>，<code>write()</code>函数一样，存在于<code>struct file_operations</code>结构体中。这也就是说我们需要针对自己的设备来实现特有的<code>ioctl()</code>。</p>
+<p>这里需要特别特别注意的是，如果你在阅读<strong>Linux Device Driver 3rd ed</strong>的话，书里使用的内核版本是2.6.xxx（具体记不清楚了）。在这个版本的内核中，<code>struct file_operations</code>结构体中的确包含的是<code>ioctl()</code>方法，原型如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">ioctl</span><span class="params">(struct inode *, struct file *, <span class="keyword">unsigned</span> <span class="keyword">int</span>, <span class="keyword">unsigned</span> <span class="keyword">long</span>)</span></span>;</div></pre></td></tr></table></figure>
+<p>但是，由于<code>ioctl()</code>会使用到BKL（Big Kernel Lock）,再由于之后打算将BKL剔除出内核代码导致<code>ioctl()</code>也被相应的替换成了<code>unlocked_ioctl()</code>，该函数的原型如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment"> * @filp: indicates the file on which operations will be taken.</span></div><div class="line"><span class="comment"> * @cmd: sub-commands indicates which actions will be taken.</span></div><div class="line"><span class="comment"> * @arg: arguments which are passed in.</span></div><div class="line"><span class="comment"> */</span></div><div class="line"><span class="keyword">long</span> (*unlocked_ioctl) (struct file * filp, <span class="keyword">unsigned</span> <span class="keyword">int</span> cmd, <span class="keyword">unsigned</span> <span class="keyword">long</span> arg);</div></pre></td></tr></table></figure>
+<p>该函数的返回值最终会作为用户空间<code>ioctl()</code>函数的返回值。函数中的第三个参数<code>arg</code>不仅可以用来传值，也可用来传递某个空间地址。</p>
+<h2 id="与用户空间交换数据"><a href="#与用户空间交换数据" class="headerlink" title="与用户空间交换数据"></a>与用户空间交换数据</h2><p>在与用户空间交换数据的时候，不仅可以用<code>copy_from_user()</code>和<code>copy_to_user()</code>，还可以使用一些专门设计用来传递小数据的函数，如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">put_user(datum, ptr)</div><div class="line">__put_user(datum, ptr)</div><div class="line"></div><div class="line">get_user(local, ptr)</div><div class="line">__get_user(local, ptr)</div></pre></td></tr></table></figure>
+<p>这些函数定义在<code>&lt;asm/uaccess.h&gt;</code>中，由于<code>&lt;linux/uaccess.h&gt;</code>也包含了<code>&lt;asm/uaccess.h&gt;</code>，因此可以直接包含<code>&lt;linux/uaccess.h&gt;</code>。</p>
+<h2 id="ioctl编号"><a href="#ioctl编号" class="headerlink" title="ioctl编号"></a>ioctl编号</h2><p>除此之外，在此处我们还要用到一些辅助的宏，用来定义我们自己的<code>ioctl()</code>号。</p>
+<p>对于每个<code>ioctl()</code>会有唯一的一个编号使得该调用和某个驱动匹配。分配<code>ioctl()</code>的编号并非随机，而是需要使用<code>_IO(type, nr)</code>，<code>_IOW(type, nr, datatype)</code>，<code>_IOR(type, nr, datatype)</code>，<code>_IOWR(type, nr, datatype)</code>这几个辅助宏。</p>
+<p>详细的讲解可以参见这里：<a href="http://www.makelinux.net/ldd3/chp-6-sect-1" target="_blank" rel="external">http://www.makelinux.net/ldd3/chp-6-sect-1</a>。</p>
+<h2 id="预先定义的命令"><a href="#预先定义的命令" class="headerlink" title="预先定义的命令"></a>预先定义的命令</h2><p>虽然ioctl主要被驱动使用，但还是有一部分会被内核所识别。具体的也可以参见：<a href="http://www.makelinux.net/ldd3/chp-6-sect-1" target="_blank" rel="external">http://www.makelinux.net/ldd3/chp-6-sect-1</a>。</p>
+<h1 id="实现我们自己的ioctl系统调用"><a href="#实现我们自己的ioctl系统调用" class="headerlink" title="实现我们自己的ioctl系统调用"></a>实现我们自己的ioctl系统调用</h1><p>在此，我们要实现一个简单的例子，这个例子会在<strong>/dev/</strong>目录中创建一个叫做<strong>ioctl-test</strong>的设备文件。在默认情况下，例如驱动刚加载后，读取该文件可以返回10条<strong>Hello World!</strong>字符串。我们可以通过自己定义的ioctl接口来修改期望的返回条数，和返回内容。</p>
+<h1 id="用户空间代码"><a href="#用户空间代码" class="headerlink" title="用户空间代码"></a>用户空间代码</h1><p>首先我们看下用户空间的代码（随便写的，请忽略代码风格）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/ioctl.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/stat.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> NEW_STR     <span class="meta-string">"Hello, Linux!!\n"</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> NEW_STR_LEN sizeof(NEW_STR)</span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> IOCTL_IOC_MAGIC <span class="meta-string">'d'</span></span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> IOCTL_RESET _IO(IOCTL_IOC_MAGIC, 0)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> IOCTL_LOOPNR    _IOWR(IOCTL_IOC_MAGIC, 1, int)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> IOCTL_STR   _IOW(IOCTL_IOC_MAGIC, 2, int)</span></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">ioctl_str</span> &#123;</span></div><div class="line">    <span class="keyword">int</span> str_len;</div><div class="line">    <span class="keyword">char</span> *str;</div><div class="line">&#125;;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">char</span> *str = (<span class="keyword">char</span> *)<span class="built_in">malloc</span>(NEW_STR_LEN);</div><div class="line">    <span class="built_in">memset</span>(str, <span class="number">0</span>, NEW_STR_LEN);</div><div class="line">    <span class="built_in">memcpy</span>(str, NEW_STR, NEW_STR_LEN);</div><div class="line"></div><div class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">ioctl_str</span> <span class="title">str_io</span> = &#123;</span></div><div class="line">        .str_len = NEW_STR_LEN,</div><div class="line">        .str = str,</div><div class="line">    &#125;;</div><div class="line"></div><div class="line">    <span class="keyword">int</span> fd = open(<span class="string">"/dev/ioctl-test"</span>, O_RDONLY);</div><div class="line">    <span class="comment">/*int err = ioctl(fd, IOCTL_RESET); //reset*/</span></div><div class="line">    <span class="comment">/*int err = ioctl(fd, IOCTL_LOOPNR, 5);*/</span></div><div class="line">    <span class="keyword">int</span> err = ioctl(fd, IOCTL_STR, &amp;str_io);</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"retval = %d\n"</span>, err);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="number">0</span>;   </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>我们对该设备定义了3个命令，分别为<code>IOCTL_RESET</code>，<code>IOCTL_LOOPNR</code>和<code>IOCTL_STR</code>。为这三条命令传入响应的参数，可以分别将设备状态重置，修改设备返回字符串的条数和修改返回的字符串内容。</p>
+<p>第35行 至 第37行包括注释掉的内容为测试样例。</p>
+<p>第35行的代码会将设备恢复至初始状态，该命令不需要参数。</p>
+<p>第36行的代码会修改返回字符串的次数为5次，其传入的参数方式为值传递。返回值为修改前的打印字符串次数。</p>
+<p>第37行的代码会修改返回的字符串内容，其传入参数的方式为地址传递。此处，返回的字符串会被修改为<strong>NEW_STR</strong>，即<strong>Hello, Linux!!\n</strong>。</p>
+<h2 id="驱动模块的编写"><a href="#驱动模块的编写" class="headerlink" title="驱动模块的编写"></a>驱动模块的编写</h2><p>为了简单起见，我们这里不详细描述设备文件的<code>read()</code>方法。如果不明白请查阅资料或者看看我之前的博文。</p>
+<p>与<em>LDD3</em>相比，新的内核使用<code>unlocked_ioctl()</code>来取代了老的<code>ioctl()</code>用以摆脱BKL。因此我们需要将设备文件的<code>struct file_operations</code>结构中的<code>unlocked_ioctl</code>字段指向我们自己的<code>ioctl()</code>，我在这里将改函数取名为<code>ioctl_ioctl()</code>。</p>
+<p>在<code>ioctl()</code>中我们要完成如下操作：</p>
+<ol>
+<li>首先我们需要检查参数是否正确，这包括检查魔数是否相符和子命令的编号范围是否正确。</li>
+<li>根据读取防线对参数地址访问进行验证，这需要使用access_ok()函数。</li>
+<li>根据传入的命令号分情况处理。</li>
+<li>读取用户空间的数据。</li>
+</ol>
+<h3 id="调用号定义"><a href="#调用号定义" class="headerlink" title="调用号定义"></a>调用号定义</h3><p>在此，我们使用魔数<code>d</code>作为我们ioctl调用的类型码。</p>
+<p>定义的代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">define</span> IOCTL_IOC_MAGIC <span class="meta-string">'d'</span></span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> IOCTL_RESET _IO(IOCTL_IOC_MAGIC, 0)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> IOCTL_LOOPNR    _IOWR(IOCTL_IOC_MAGIC, 1, int)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> IOCTL_STR   _IOW(IOCTL_IOC_MAGIC, 2, int)</span></div></pre></td></tr></table></figure>
+<h3 id="用户空间地址检查"><a href="#用户空间地址检查" class="headerlink" title="用户空间地址检查"></a>用户空间地址检查</h3><p>使用<code>access_ok()</code>函数可以对传入的用户空间地址进行检查。<code>access_ok()</code>函数的原型如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"><span class="comment"> * @type: 只能取VERIFY_READ或VERIFY_WRITE。如果既要读取又要写入，则为</span></div><div class="line"><span class="comment"> * VERIFY_WRITE，因为它是VERIFY_READ的超集。</span></div><div class="line"><span class="comment"> * @addr: 用户空间传参的地址。</span></div><div class="line"><span class="comment"> * @size: 用户空间传参数据的大小。</span></div><div class="line"><span class="comment"> */</span></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">access_ok</span><span class="params">(<span class="keyword">int</span> type, <span class="keyword">const</span> <span class="keyword">void</span> *addr, <span class="keyword">unsigned</span> <span class="keyword">long</span> size)</span></span>;</div></pre></td></tr></table></figure>
+<p>需要注意的是，从<code>ioctl()</code>的角度来看，读操作和写操作是相对于用户空间的代码来说的。也就是说，写操作是用户往文件写，读是用户从文件读。而对于<code>access_ok()</code>来说，读和写是相对于内核来讲的，读是从用户空间读取数据到内核空间，而写操作是从内核空间向用户空间写。</p>
+<p><strong>此外需要注意的是：<code>access_ok()</code>这个函数对用户空间地址的检查时粗略的，且和所影星的硬件架构有关。在X86架构上，该函数仅仅判断了我们需要操作的地址是在整个物理地址空间的低位（因为内核代码处于高位）。</strong></p>
+<blockquote>
+<p>参考：<a href="http://stackoverflow.com/questions/30857584/can-i-pass-an-integer-to-access-ok-as-its-second-argument" target="_blank" rel="external">http://stackoverflow.com/questions/30857584/can-i-pass-an-integer-to-access-ok-as-its-second-argument</a></p>
+</blockquote>
+<h3 id="操作权限检查"><a href="#操作权限检查" class="headerlink" title="操作权限检查"></a>操作权限检查</h3><p>此外，在处理具体的命令号时，我们还要判断是否有权限。在例子中，我们修改打印条数的操作需要超级权限。在内核中使用如下的代码片段来判断是否具有合适的权限：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> (!capable(CAP_SYS_ADMIN))</div><div class="line">    <span class="keyword">return</span> -EPERM;</div></pre></td></tr></table></figure>
+<p>完整的操作权限定义在<code>&lt;inux/capability.h&gt;</code>中。其中我们可能会用到的权限如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">CAP_DAC_OVERRIDE</div><div class="line">    The ability to override access restrictions (data access control, or DAC) on files and directories.</div><div class="line"></div><div class="line">CAP_NET_ADMIN</div><div class="line">    The ability to perform network administration tasks, including those that affect network interfaces.</div><div class="line"></div><div class="line">CAP_SYS_MODULE</div><div class="line">    The ability to load <span class="keyword">or</span> remove kernel modules.</div><div class="line"></div><div class="line">CAP_SYS_RAWIO</div><div class="line">    The ability to perform <span class="string">"raw"</span> I/O operations. Examples include accessing device ports <span class="keyword">or</span> communicating directly with USB devices.</div><div class="line"></div><div class="line">CAP_SYS_ADMIN</div><div class="line">    A <span class="keyword">catch</span>-all capability that provides access to many system administration operations.</div><div class="line"></div><div class="line">CAP_SYS_TTY_CONFIG</div><div class="line">    The ability to perform tty configuration tasks.</div></pre></td></tr></table></figure>
+<h3 id="ioctl的具体实现"><a href="#ioctl的具体实现" class="headerlink" title="ioctl的具体实现"></a>ioctl的具体实现</h3><p>最后我们只需使用<code>switch case</code>语句来根据命令跳转到对应的分支执行就好了。</p>
+<p>对于字符串的传输，我们可以将内容写入到某个用户空间地址，然后再在<code>ioctl()</code>中使用<code>copy_from_user()</code>将内容拷贝到内核即可。</p>
+<h1 id="完整的代码"><a href="#完整的代码" class="headerlink" title="完整的代码"></a>完整的代码</h1><p>在这里找到：<a href="https://github.com/d0u9/Linux-Device-Driver/tree/master/07_ioctl" target="_blank" rel="external">https://github.com/d0u9/Linux-Device-Driver/tree/master/07_ioctl</a></p>
+<hr>
+<h3 id="¶-The-end"><a href="#¶-The-end" class="headerlink" title="¶ The end"></a>¶ The end</h3><p>Share Link:  <a href="http://d0u9.win/posts/2768311140.html">http://d0u9.win/posts/2768311140.html</a> </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+            <a href="/tags/Linux-Kernel/" rel="tag"># Linux Kernel</a>
+          
+            <a href="/tags/Linux-Driver/" rel="tag"># Linux Driver</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/2314391335.html" rel="next" title="北京难得好天气">
+                <i class="fa fa-chevron-left"></i> 北京难得好天气
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/1614808257.html" rel="prev" title="Linux驱动开发--简单睡眠">
+                Linux驱动开发--简单睡眠 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <!-- avatar previously here -->
+              <p class="site-author-name" itemprop="name">Douglas Su</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">75</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">34</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/d0u9" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://twitter.com/D0u9Su" target="_blank" title="Twitter">
+                    
+                      <i class="fa fa-fw fa-twitter"></i>Twitter</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.facebook.com/profile.php?id=100010131587938" target="_blank" title="FB Page">
+                    
+                      <i class="fa fa-fw fa-facebook"></i>FB Page</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://stackoverflow.com/users/3824053/douglas-su" target="_blank" title="StackOverflow">
+                    
+                      <i class="fa fa-fw fa-stack-overflow"></i>StackOverflow</a>
+                </span>
+                <br />
+              
+            
+          </div>
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#用到的函数或宏定义"><span class="nav-number">1.</span> <span class="nav-text">用到的函数或宏定义</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ioctl-函数"><span class="nav-number">1.1.</span> <span class="nav-text">ioctl()函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#与用户空间交换数据"><span class="nav-number">1.2.</span> <span class="nav-text">与用户空间交换数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ioctl编号"><span class="nav-number">1.3.</span> <span class="nav-text">ioctl编号</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#预先定义的命令"><span class="nav-number">1.4.</span> <span class="nav-text">预先定义的命令</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#实现我们自己的ioctl系统调用"><span class="nav-number">2.</span> <span class="nav-text">实现我们自己的ioctl系统调用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#用户空间代码"><span class="nav-number">3.</span> <span class="nav-text">用户空间代码</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#驱动模块的编写"><span class="nav-number">3.1.</span> <span class="nav-text">驱动模块的编写</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#调用号定义"><span class="nav-number">3.1.1.</span> <span class="nav-text">调用号定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用户空间地址检查"><span class="nav-number">3.1.2.</span> <span class="nav-text">用户空间地址检查</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#操作权限检查"><span class="nav-number">3.1.3.</span> <span class="nav-text">操作权限检查</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ioctl的具体实现"><span class="nav-number">3.1.4.</span> <span class="nav-text">ioctl的具体实现</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#完整的代码"><span class="nav-number">4.</span> <span class="nav-text">完整的代码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#¶-The-end"><span class="nav-number">4.0.1.</span> <span class="nav-text">¶ The end</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Douglas Su</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

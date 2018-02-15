@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+  <link rel="stylesheet" media="all" href="/lib/Han/dist/han.min.css?v=3.3">
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/icons/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/icons/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/icons/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/icons/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Assembly Language,GCC," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="虽然对汇编有些许了解，也能半知半解的看懂C潜入的汇编代码，但是每次都有一种隔靴搔痒的感觉。遂总结之。">
+<meta name="keywords" content="Assembly Language,GCC">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GCC嵌入式汇编简介">
+<meta property="og:url" content="http://d0u9.win/posts/3564505605.html">
+<meta property="og:site_name" content="d0u9">
+<meta property="og:description" content="虽然对汇编有些许了解，也能半知半解的看懂C潜入的汇编代码，但是每次都有一种隔靴搔痒的感觉。遂总结之。">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2017-11-07T15:10:00.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="GCC嵌入式汇编简介">
+<meta name="twitter:description" content="虽然对汇编有些许了解，也能半知半解的看懂C潜入的汇编代码，但是每次都有一种隔靴搔痒的感觉。遂总结之。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://d0u9.win/posts/3564505605.html"/>
+
+
+
+
+
+  <title>GCC嵌入式汇编简介 | d0u9</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    
+      <img class="site-author-image" itemprop="image"
+        src="/images/avatar.png"
+        alt="Douglas Su" />
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">d0u9</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">For thine is the kingdom, the power, and the glory ...</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://d0u9.win/posts/3564505605.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Douglas Su">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="d0u9">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">GCC嵌入式汇编简介</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-12-22T17:43:00+08:00">
+                2015-12-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/" itemprop="url" rel="index">
+                    <span itemprop="name">Science & Technology</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/Programming-Language/" itemprop="url" rel="index">
+                    <span itemprop="name">Programming Language</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Science-Technology/Programming-Language/Assembly-Language/" itemprop="url" rel="index">
+                    <span itemprop="name">Assembly Language</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body han-init-context" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>虽然对汇编有些许了解，也能半知半解的看懂C潜入的汇编代码，但是每次都有一种隔靴搔痒的感觉。遂总结之。</p>
+<a id="more"></a>
+<h1 id="基本内联汇编"><a href="#基本内联汇编" class="headerlink" title="基本内联汇编"></a>基本内联汇编</h1><p>最基本的内联汇编格式有些像一个函数的调用：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">asm( asm-code-strings );</div></pre></td></tr></table></figure>
+<p>需要注意的是，<code>asm-code-string</code>是一个字符串，在这个字符串中的代码会被GCC直接插入到中间生成汇编代码中，并被链接到最后的可执行文件中。所以，你需要注意报错的是不是汇编器。</p>
+<p>举个例子：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// assembly_1.c</span></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">foo</span><span class="params">(<span class="keyword">void</span>)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">	<span class="keyword">asm</span>( <span class="string">"movl $0, %eax	\n\t"</span></div><div class="line">	     <span class="string">"addl $1, %eax"</span></div><div class="line">	   );</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在Mac OSX 10.11.2 下使用<code>gcc assembly_1.c -S -fno-asynchronous-unwind-tables</code>命令进行编译后可得到如下的汇编文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">## assembly_1.c</div><div class="line">	.section	__TEXT,__text,regular,pure_instructions</div><div class="line">	.macosx_version_min 10, 11</div><div class="line">	.globl	_foo</div><div class="line">	.align	4, 0x90</div><div class="line">_foo:                                   ## @foo</div><div class="line">## BB#0:</div><div class="line">	pushq	%rbp</div><div class="line">	movq	%rsp, %rbp</div><div class="line">	## InlineAsm Start</div><div class="line">	movl	$0, %eax</div><div class="line">	addl	$1, %eax</div><div class="line">	## InlineAsm End</div><div class="line">	xorl	%eax, %eax</div><div class="line">	popq	%rbp</div><div class="line">	retq</div><div class="line"></div><div class="line"></div><div class="line">.subsections_via_symbols</div></pre></td></tr></table></figure>
+<p>在其中能看到，我们插入的内联汇编被标记了出来。</p>
+<h1 id="asm-关键字的扩展写法"><a href="#asm-关键字的扩展写法" class="headerlink" title="asm 关键字的扩展写法"></a><code>asm</code> 关键字的扩展写法</h1><p>GCC提供了一种扩展写法，能够让程序员将C的变量和汇编中的操作数对应起来，哪些寄存器会被嵌入的汇编代码所改写。在这种情况下，GCC能够更好保护那些会被改写的寄存器，将汇编代码和C代码更好的融合。</p>
+<p>通用的嵌入式汇编写法格式如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">asm</span> [<span class="keyword">volatile</span>] (</div><div class="line">	code-<span class="built_in">string</span></div><div class="line">	: output-<span class="built_in">list</span>		<span class="comment">/* 可选的 */</span></div><div class="line">	: input-<span class="built_in">list</span>		<span class="comment">/* 可选的 */</span></div><div class="line">	: overwrite-<span class="built_in">list</span>	<span class="comment">/* 可选的 */</span></div><div class="line">);</div></pre></td></tr></table></figure>
+<p>volatile的作用是防止GCC编译器自己做主将汇编代码优化掉，如果在asm语句之后的C代码没有使用任何output-list中的输出，那么需要用volatile来防止编译器对该asm代码段的优化。</p>
+<p><code>code-string</code> 汇编代码。需要注意的是，如果需要嵌入多个汇编指令，需要使用换行符进行分割，约定俗称的分隔符是<code>\n\t</code>。<br><code>output-list</code> 汇编代码的输出映射。<br><code>intput-list</code> 汇编代码的输入映射。<br><code>overwrite-list</code> 会被嵌入的汇编代码改写的寄存器列表。</p>
+<h2 id="output-list"><a href="#output-list" class="headerlink" title="output-list"></a>output-list</h2><p>output-list由逗号分割不同的段，每个段的格式为<code>[name] constraint (expr)</code>。</p>
+<ul>
+<li><p>name仅仅是一个符号，用来表示汇编代码中的某个操作数。无论是在string-list中还是output-list中，它必须被方括号包裹。命令方式和C语言一致，任何在C中合法的变量名都可以被使用，即使是在函数中定义过的变量名也可以使用，该操作数的作用域仅仅是声明该操作数的asm代码块。name可以被省略，当它被省略的时候，会按照出现顺序进行编号。</p>
+</li>
+<li><p>constraint的作用主要是用来说明输出的位置是内存还是寄存器还是什么位置，具体的constraint见<a href="#constraints">constraints</a>。</p>
+</li>
+<li><p>expr是一个C表达式表明指令结果的存储位置，该表达式必须为左值表达式。需要注意的是，圆括号是必须的。</p>
+</li>
+</ul>
+<h2 id="input-list"><a href="#input-list" class="headerlink" title="input-list"></a>input-list</h2><p>input-list与output-list类似，也是由逗号分隔的段，每个段表示一个操作数的映射,格式为<code>[name] Constraint (expr)</code>。</p>
+<ul>
+<li><p>name与output-list类似，唯一的不同在于，如果name省略的话，编号并不会从0开始，而是从output-list中操作数的个数开始。例如，如果在output-list中有3个操作数，不管他们有没有name，都会从3开始。</p>
+</li>
+<li><p>constraint的作用见<a href="constraint">constraint</a>。</p>
+</li>
+<li><p>expr是一个c表达式，它的值作为汇编代码对应操作数的值。</p>
+</li>
+</ul>
+<h2 id="overwrite-list"><a href="#overwrite-list" class="headerlink" title="overwrite-list"></a>overwrite-list</h2><p>用逗号分隔的，会被嵌入的汇编代码改写的寄存器，寄存器名字需要放在双引号中。比较常用的有一个<code>memory</code>参数，它告诉编译器这段汇编代码除了input-list和output-list中指明的操作数之外，还对内存进行的读或者写。这样GCC执行这段汇编代码之前会将内存刷新，同时在汇编执行外之后也会刷新对应的寄存器，确保数据的一致。</p>
+<h2 id="constraints"><a href="#constraints" class="headerlink" title="constraints "></a>constraints <a id="constraints"></a></h2><p>constraints表明了操作数的存储位置和存储方式，比较常用的见下表：</p>
+<table>
+<thead>
+<tr>
+<th>Simple Constraints</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>m</td>
+<td>内存位置</td>
+</tr>
+<tr>
+<td>r</td>
+<td>通用寄存器</td>
+</tr>
+<tr>
+<td>i</td>
+<td>立即数，0..0xffffffff</td>
+</tr>
+<tr>
+<td>g</td>
+<td>通用寄存器，立即数或内存，编译器自己决定</td>
+</tr>
+<tr>
+<td>a,b,c,d,S,D</td>
+<td>分别表示eax,ebx,ecx,edx,esi,edi 寄存器</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Constraint Modifier Characters</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>=</td>
+<td>表明操作数被新值写入</td>
+</tr>
+<tr>
+<td>+</td>
+<td>操作数会被读取并写入</td>
+</tr>
+<tr>
+<td>&amp;</td>
+<td>该寄存器仅被用于输出，主要防止某些寄存器在输入后被重用，导致数据错误</td>
+</tr>
+<tr>
+<td>%</td>
+<td>该操作数和下一个操作数允许交换，用以提升性能</td>
+</tr>
+</tbody>
+</table>
+<h2 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">get_year</span><span class="params">(<span class="keyword">int</span> a, <span class="keyword">int</span> *b, <span class="keyword">char</span> * c)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">        <span class="keyword">long</span> t2;</div><div class="line">        <span class="keyword">int</span> ret;</div><div class="line"></div><div class="line">        <span class="keyword">asm</span> (</div><div class="line">                <span class="string">"addl %[b], %0                                  \n\t"</span></div><div class="line">                <span class="string">"xorq %%rdx, %%rdx                              \n\t"</span></div><div class="line">                <span class="string">"movl $58, %%edx                                \n\t"</span></div><div class="line">                <span class="string">"movb %%dl, 0x04(%1)                            \n\t"</span></div><div class="line">                : <span class="string">"=r"</span> (ret), <span class="string">"=&amp;D"</span> (t2)</div><div class="line">                : <span class="string">"0"</span> (a), [b] <span class="string">"erm"</span> (*b), <span class="string">"1"</span> (c)</div><div class="line">                : <span class="string">"edx"</span>, <span class="string">"memory"</span></div><div class="line">        );</div><div class="line"></div><div class="line">        <span class="keyword">return</span> ret;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">        <span class="keyword">int</span> a = <span class="number">15</span>, ret;</div><div class="line">        <span class="keyword">int</span> *out = &amp;a;</div><div class="line">        <span class="keyword">char</span> <span class="built_in">string</span>[] = <span class="string">"Year  "</span>;</div><div class="line">        ret = get_year(<span class="number">2000</span>, out, <span class="built_in">string</span>);</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"%s%d\n"</span>, <span class="built_in">string</span>, ret);</div><div class="line">        <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这只是一个例子，所以里面有很多可以被优化的地方。</p>
+<p>这段代码的作用是将两个数2000和15相加，之后为字符串”Year  “添加冒号。</p>
+<p>2000和15两个数分别用传值和地址传递两种方式实现。</p>
+<p>需要注意的是第13行的<code>&quot;=&amp;D&quot;</code>，这里使用&amp;来表示保存t2的寄存器不要被重用。由于编译器会存在某些优化机制，导致为t2保留的寄存器在返回之前暂时被用作其他的目的，从而造成某些错误。</p>
+<p>这里t2只是一个占位符，最后会被编译器优化掉。这种写法来自于Linux<a href="https://github.com/torvalds/linux/blob/master/arch/x86/boot/compressed/string.c" target="_blank" rel="external">内核的memcpy函数</a></p>
+<h1 id="关于-amp-的一点说明"><a href="#关于-amp-的一点说明" class="headerlink" title="关于&amp;的一点说明"></a>关于&amp;的一点说明</h1><p>使用<code>&amp;</code>表示该输出操作数不能和输入操作数重叠。如果不指定<code>&amp;</code>，GCC编译器可能会在输出该操作数指定的寄存器之前，将该寄存器用以其他的目的，造成该操作数被覆盖。</p>
+<p>在<a href="http://www.nongnu.org/avr-libc/user-manual/inline_asm.html" target="_blank" rel="external">这篇文章中</a>作者给出了一个不错的例子：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">asm</span> <span class="title">volatile</span><span class="params">(<span class="string">"in %0,%1"</span> <span class="string">"\n\t"</span></span></span></div><div class="line"><span class="function"><span class="params">    <span class="string">"out %1, %2"</span> <span class="string">"\n\t"</span></span></span></div><div class="line"><span class="function"><span class="params">    : <span class="string">"=&amp;r"</span> (input)</span></span></div><div class="line">    : "I" (_SFR_IO_ADDR(port)), "r" (output)</div><div class="line">);</div></pre></td></tr></table></figure>
+<p>在上面的这段代码中，input会被用来存放从IO输入的数据。由于汇编代码中，IO的输入在输出之前，那么在第一条指令执行完后，<code>%0</code>保存了我们从IO接受的数据，如果不加<code>&amp;</code>的话，那么在吓一条指令中，编译器可能会继续使用<code>%0</code>所指定的寄存器用来保存输出数据，因为编译器认为上一条指令执行完后，<code>%0</code>就可以释放了。</p>
+<p><code>&amp;</code>加入之后，可以保证<code>%0</code>所用的寄存器不回再被再次使用。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><p><a href="https://gcc.gnu.org/onlinedocs/gcc/Using-Assembly-Language-with-C.html#Using-Assembly-Language-with-C" target="_blank" rel="external">GCC manual - How to Use Inline Assembly Language in C Code</a></p>
+</li>
+<li><p><a href="http://www.ibiblio.org/gferg/ldp/GCC-Inline-Assembly-HOWTO.html" target="_blank" rel="external">GCC-Inline-Assembly-HOWTO</a></p>
+</li>
+<li><p><a href="http://stackoverflow.com/questions/34446928/llvm-reports-unsupported-inline-asm-input-with-type-void-matching-output-w" target="_blank" rel="external">Stackoverflow - llvm reports: unsupported inline asm: input with type ‘void *’ matching output with type ‘int’</a></p>
+</li>
+<li><p><a href="http://www.nongnu.org/avr-libc/user-manual/inline_asm.html" target="_blank" rel="external">Inline Assembler Cookbook</a></p>
+</li>
+</ol>
+<hr>
+<h3 id="¶-The-end"><a href="#¶-The-end" class="headerlink" title="¶ The end"></a>¶ The end</h3><p>Share Link:  <a href="http://d0u9.win/posts/3564505605.html">http://d0u9.win/posts/3564505605.html</a> </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Assembly-Language/" rel="tag"># Assembly Language</a>
+          
+            <a href="/tags/GCC/" rel="tag"># GCC</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/953412640.html" rel="next" title="Vim插件介绍--CtrlP, vim-buffergator, bufferline, ag">
+                <i class="fa fa-chevron-left"></i> Vim插件介绍--CtrlP, vim-buffergator, bufferline, ag
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/3808817489.html" rel="prev" title="冬日的颐和园 (landscape of Summer Palace)">
+                冬日的颐和园 (landscape of Summer Palace) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <!-- avatar previously here -->
+              <p class="site-author-name" itemprop="name">Douglas Su</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">75</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">34</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/d0u9" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://twitter.com/D0u9Su" target="_blank" title="Twitter">
+                    
+                      <i class="fa fa-fw fa-twitter"></i>Twitter</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.facebook.com/profile.php?id=100010131587938" target="_blank" title="FB Page">
+                    
+                      <i class="fa fa-fw fa-facebook"></i>FB Page</a>
+                </span>
+                <br />
+              
+                <span class="links-of-author-item">
+                  <a href="https://stackoverflow.com/users/3824053/douglas-su" target="_blank" title="StackOverflow">
+                    
+                      <i class="fa fa-fw fa-stack-overflow"></i>StackOverflow</a>
+                </span>
+                <br />
+              
+            
+          </div>
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#基本内联汇编"><span class="nav-number">1.</span> <span class="nav-text">基本内联汇编</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#asm-关键字的扩展写法"><span class="nav-number">2.</span> <span class="nav-text">asm 关键字的扩展写法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#output-list"><span class="nav-number">2.1.</span> <span class="nav-text">output-list</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#input-list"><span class="nav-number">2.2.</span> <span class="nav-text">input-list</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#overwrite-list"><span class="nav-number">2.3.</span> <span class="nav-text">overwrite-list</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#constraints"><span class="nav-number">2.4.</span> <span class="nav-text">constraints </span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#例子"><span class="nav-number">2.5.</span> <span class="nav-text">例子</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#关于-amp-的一点说明"><span class="nav-number">3.</span> <span class="nav-text">关于&的一点说明</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#¶-The-end"><span class="nav-number">4.0.1.</span> <span class="nav-text">¶ The end</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Douglas Su</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
